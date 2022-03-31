@@ -1,5 +1,5 @@
 mod blockchain;
-mod page_renderer;
+mod http_server;
 
 fn main() {
     println!("Hello, world!");

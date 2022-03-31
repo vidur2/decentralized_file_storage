@@ -16,28 +16,19 @@ impl Blockchain {
         let next_index = self.0.len();
         let prev_block = &self.0[next_index - 1];
         let block = Block::new(next_index as u128, prev_block.hash_block().unwrap(), file);
-        match block {
-            Some(block_uw) => {
-                if self.check_block_validity(&block_uw, &prev_block) {
-                    drop(prev_block);
-                    self.0.push(block_uw);
-                    return true;
-                } else {
-                    return false;
-                }
-            },
-
-            None => {
-                println!("An error has occoured");
-                return false;
-            }
+        if self.check_block_validity(&block, &prev_block) {
+            drop(prev_block);
+            self.0.push(block);
+            return true;
+        } else {
+            return false;
         }
     }
 
     pub fn find_block_by_uri(&self, uri: &str) -> Option<&Block> {
         let blockchain = &self.0;
         for block in blockchain.iter() {
-            if block.linked_uri == uri {
+            if block.data.linked_uri == uri {
                 return Some(block);
             }
         }
