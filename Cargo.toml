@@ -1,0 +1,12 @@
+[package]
+edition = "2021"
+name = "file_blockchain_but_efficient"
+version = "0.1.0"
+[dependencies]
+datetime = "*"
+sha2 = "*"
+serde_json = "*"
+
+[dependencies.serde]
+features = ["derive"]
+version = "*"
