@@ -37,10 +37,6 @@ impl Block {
         }
     }
 
-    pub fn find_block_by_uri(uri: String) -> String {
-        todo!()
-    }
-
     pub fn hash_block(&self) -> Option<String> {
         let mut hasher = Sha256::new();
         let data_as_str = serde_json::to_string(&self);
@@ -59,7 +55,7 @@ impl Block {
 
     pub fn genesis() -> Self {
         let mut hasher = Sha256::new();
-        let data = FileInformation::new(String::from("vidur2"), String::from("0.0.1"), String::from("https://github.com/vidur2"), String::from("Test1"));
+        let data = FileInformation::new(String::from("vidur2"), String::from("0.0.1"), String::from("https://github.com/vidur2"), b"test1");
 
         let data_as_string = serde_json::to_string(&data);
         drop(data);

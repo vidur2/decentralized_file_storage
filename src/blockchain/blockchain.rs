@@ -9,7 +9,7 @@ impl Blockchain {
     pub fn new() -> Self {
         let mut blockchain = Vec::new();
         blockchain.push(Block::genesis());
-        return Self(blockchain)
+        return Self(blockchain);
     }
 
     pub fn add_block(&mut self, file: FileInformation) -> bool {
@@ -32,6 +32,16 @@ impl Blockchain {
                 return false;
             }
         }
+    }
+
+    pub fn find_block_by_uri(&self, uri: &str) -> Option<&Block> {
+        let blockchain = &self.0;
+        for block in blockchain.iter() {
+            if block.linked_uri == uri {
+                return Some(block);
+            }
+        }
+        return None;
     }
 
     // Checks whether a block is valid

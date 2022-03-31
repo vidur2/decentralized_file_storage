@@ -3,9 +3,11 @@ edition = "2021"
 name = "file_blockchain_but_efficient"
 version = "0.1.0"
 [dependencies]
+base64-url = "*"
 datetime = "*"
-sha2 = "*"
 serde_json = "*"
+sha2 = "*"
+tree_magic_fork = "*"
 
 [dependencies.serde]
 features = ["derive"]
