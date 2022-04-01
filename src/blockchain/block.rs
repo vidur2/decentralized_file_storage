@@ -1,7 +1,7 @@
 use datetime::Instant;
 use sha2::{ Sha256, Digest };
 use serde::{Serialize, Deserialize};
-use super::file_infor::FileInformation;
+use super::file_infor::{FileInformation, FileType};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Block {
@@ -48,7 +48,7 @@ impl Block {
 
     /// Gets the genesis block (hardcoded information)
     pub fn genesis() -> Self {
-        let data = FileInformation::new(String::from("vidur2"), String::from("0.0.1"), String::from("https://github.com/vidur2"), b"test1");
+        let data = FileInformation::new(String::from("vidur2"), String::from("0.0.1"), String::from("https://github.com/vidur2"), b"test1", FileType::DataStore);
 
         return Self {
             index: 0,

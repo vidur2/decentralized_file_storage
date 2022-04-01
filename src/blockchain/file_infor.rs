@@ -2,6 +2,12 @@ use serde::{Serialize, Deserialize};
 use tree_magic_fork;
 use base64_url;
 
+/// Enum to represent how to serve the file
+#[derive(Serialize, Clone, Deserialize)]
+pub enum FileType {
+    Frontend,
+    DataStore
+}
 
 /// A file is represented here
 #[derive(Serialize, Clone, Deserialize)]
@@ -17,7 +23,10 @@ pub struct FileInformation {
     creator: String,
 
     /// Same purpose as above field
-    version: String
+    version: String,
+
+    /// Field defines how file should be served
+    file_type: FileType
 }
 
 impl FileInformation {
@@ -30,7 +39,7 @@ impl FileInformation {
     /// * `version`- An owned string representation of the file
     /// * `linked_uri`- An owned string representing the domain that is attatched to the file
     /// * `data`- a u8 representation of the bytes of the file
-    pub fn new(creator: String, version: String, linked_uri: String, data: &[u8]) -> Self {
+    pub fn new(creator: String, version: String, linked_uri: String, data: &[u8], file_type: FileType) -> Self {
         let mime_type = tree_magic_fork::from_u8(data);
         let b64_data = base64_url::encode(data);
         let final_data_url = format!("data:{},{}", mime_type, b64_data);
@@ -39,7 +48,8 @@ impl FileInformation {
             data: final_data_url,
             linked_uri,
             creator,
-            version
+            version,
+            file_type
         }
     }
 }

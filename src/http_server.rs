@@ -123,7 +123,7 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
 
             // Route to store a file on chain
             // Takes a FileInformation struct as input
-            // `data` field should be a base64 url with mime type
+            // `data` field should be a base64 url with mime type if it is frontend, otherwise it can be stored as any format, you just have to handle it
             if buffer.starts_with(b"POST /store_information") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
