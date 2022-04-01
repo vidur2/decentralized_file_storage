@@ -8,6 +8,7 @@ datetime = "*"
 serde_json = "*"
 sha2 = "*"
 tree_magic_fork = "*"
+tungstenite = "*"
 
 [dependencies.serde]
 features = ["derive"]

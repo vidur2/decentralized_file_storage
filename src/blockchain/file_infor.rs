@@ -1,10 +1,10 @@
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use tree_magic_fork;
 use base64_url;
 
 
 /// A file is represented here
-#[derive(Serialize, Clone)]
+#[derive(Serialize, Clone, Deserialize)]
 pub struct FileInformation {
 
     /// Public field of data is a base64 encoded url

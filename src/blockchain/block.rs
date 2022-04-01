@@ -1,9 +1,9 @@
 use datetime::Instant;
 use sha2::{ Sha256, Digest };
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use super::file_infor::FileInformation;
 
-#[derive(Clone, Serialize)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Block {
     pub index: u128,
     pub previous_hash: String,
