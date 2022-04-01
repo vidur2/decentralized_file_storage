@@ -94,10 +94,6 @@ pub fn init_http() {
     }
 }
 
-fn handle_listener(listener: TcpListener, blockchain: Arc<Mutex<Blockchain>>, sockets: &'static mut Arc<Mutex<Vec<Mutex<WebSocket<TcpStream>>>>>) {
-    
-}
-
 fn check_connection_type(stream: &mut TcpStream) -> ConnectionType {
     let mut buffer = [0u8; 1024];
     match stream.read(&mut buffer) {
