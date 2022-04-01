@@ -122,6 +122,10 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
         Ok(_) => {
             let cloned_response_ref = response_content.clone();
             thread::spawn(move || {
+
+                // Route to store a file on chain
+                // Takes a FileInformation struct as input
+                // `data` field should be a base64 url with mime type
                 if buffer.starts_with(b"POST /store_information") {
                     let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                     let body = parse_body(full_req);
@@ -136,7 +140,19 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
                         let mut socket_writable = socket.lock().unwrap();
                         socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
                     }
-                } else if buffer.starts_with(b"POST /get_information_by_url") {
+                    let resp = "Successful";
+                    let response = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                        resp.len(),
+                        &resp
+                    );
+
+                    cloned_response_ref.lock().unwrap().push_str(&response)
+
+                } 
+                
+                // Gets data from a specified url
+                else if buffer.starts_with(b"POST /get_information_by_url") {
                     let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                     let body = parse_body(full_req);
                     let guarded=  blockchain.lock().unwrap();
