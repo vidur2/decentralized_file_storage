@@ -36,7 +36,7 @@ pub fn init_http() {
 
         match conn_type {
             ConnectionType::Http => {
-                handle_http(&mut stream, blockchain, sockets);
+                thread::spawn(move || {handle_http(&mut stream, blockchain, sockets)});
             },
 
             ConnectionType::Webocket => {
@@ -117,74 +117,71 @@ fn check_connection_type(stream: &mut TcpStream) -> ConnectionType {
 
 fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
     let mut buffer = [0u8; 1024];
-    let response_content = Arc::new(Mutex::new(String::new()));
+    let mut response_content = String::new();
     match stream.read(&mut buffer) {
         Ok(_) => {
-            let cloned_response_ref = response_content.clone();
-            thread::spawn(move || {
 
-                // Route to store a file on chain
-                // Takes a FileInformation struct as input
-                // `data` field should be a base64 url with mime type
-                if buffer.starts_with(b"POST /store_information") {
-                    let full_req = String::from_utf8(buffer.to_vec()).unwrap();
-                    let body = parse_body(full_req);
-                    let file_infor_in_body: FileInformation = serde_json::from_str(&body).unwrap();
-                    let mut guard = blockchain.lock().unwrap();
-                    guard.add_block(file_infor_in_body);
+            // Route to store a file on chain
+            // Takes a FileInformation struct as input
+            // `data` field should be a base64 url with mime type
+            if buffer.starts_with(b"POST /store_information") {
+                let full_req = String::from_utf8(buffer.to_vec()).unwrap();
+                let body = parse_body(full_req);
+                let file_infor_in_body: FileInformation = serde_json::from_str(&body).unwrap();
+                let mut guard = blockchain.lock().unwrap();
+                guard.add_block(file_infor_in_body);
 
-                    let ws_iter = sockets.lock().unwrap();
-                    let reffed = serde_json::to_string_pretty(&guard.0).unwrap();
+                let ws_iter = sockets.lock().unwrap();
+                let reffed = serde_json::to_string_pretty(&guard.0).unwrap();
 
-                    for socket in  ws_iter.iter() {
-                        let mut socket_writable = socket.lock().unwrap();
-                        socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                    }
-                    let resp = "Successful";
-                    let response = format!(
-                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-                        resp.len(),
-                        &resp
-                    );
-
-                    cloned_response_ref.lock().unwrap().push_str(&response)
-
-                } 
-                
-                // Gets data from a specified url
-                else if buffer.starts_with(b"POST /get_information_by_url") {
-                    let full_req = String::from_utf8(buffer.to_vec()).unwrap();
-                    let body = parse_body(full_req);
-                    let guarded=  blockchain.lock().unwrap();
-                    let block = guarded.find_block_by_uri(&body);
-                    drop(body);
-                    
-                    match block {
-                        Some(block_uw) => {
-                            let data = &block_uw.data.data;
-                            // Write response here 
-                            let response = format!(
-                                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-                                data.len(),
-                                &data
-                            );
-                            cloned_response_ref.lock().unwrap().push_str(&response);
-                            drop(response);
-                        }
-                        None => {
-                            let resp = "URL not stored in blockchain";
-                            let response = format!(
-                                "HTTP/1.1 400 Bad Request\r\nContent-Length: {}\r\n\r\n{}",
-                                resp.len(),
-                                resp
-                            );
-                            cloned_response_ref.lock().unwrap().push_str(&response);
-                            drop(response);
-                        },
-                    }
+                for socket in  ws_iter.iter() {
+                    let mut socket_writable = socket.lock().unwrap();
+                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
                 }
-            });
-            stream.write(response_content.lock().unwrap().as_bytes()).unwrap();
+                let resp = "Successful";
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                    resp.len(),
+                    &resp
+                );
+
+                response_content.push_str(&response)
+
+            } 
+            
+            // Gets data from a specified url
+            else if buffer.starts_with(b"POST /get_information_by_url") {
+                let full_req = String::from_utf8(buffer.to_vec()).unwrap();
+                let body = parse_body(full_req);
+                let guarded=  blockchain.lock().unwrap();
+                let block = guarded.find_block_by_uri(&body);
+                drop(body);
+                
+                match block {
+                    Some(block_uw) => {
+                        let data = &block_uw.data.data;
+                        // Write response here 
+                        let response = format!(
+                            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                            data.len(),
+                            &data
+                        );
+                        response_content.push_str(&response);
+                        drop(response);
+                    }
+                    None => {
+                        let resp = "URL not stored in blockchain";
+                        let response = format!(
+                            "HTTP/1.1 400 Bad Request\r\nContent-Length: {}\r\n\r\n{}",
+                            resp.len(),
+                            resp
+                        );
+                        response_content.push_str(&response);
+                        drop(response);
+                    },
+                }
+            }
+            stream.write(response_content.as_bytes()).unwrap();
         },
         Err(_) => todo!(),
     }
