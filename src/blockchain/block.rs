@@ -48,10 +48,7 @@ impl Block {
 
     /// Gets the genesis block (hardcoded information)
     pub fn genesis() -> Self {
-        let mut hasher = Sha256::new();
         let data = FileInformation::new(String::from("vidur2"), String::from("0.0.1"), String::from("https://github.com/vidur2"), b"test1");
-
-        let data_as_string = serde_json::to_string(&data);
 
         return Self {
             index: 0,

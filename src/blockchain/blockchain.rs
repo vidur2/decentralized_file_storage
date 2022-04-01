@@ -29,7 +29,7 @@ impl Blockchain {
 
     pub fn find_block_by_uri(&self, uri: &str) -> Option<&Block> {
         let blockchain = &self.0;
-        for block in blockchain.iter() {
+        for block in blockchain.iter().rev() {
             if block.data.linked_uri == uri {
                 return Some(block);
             }
