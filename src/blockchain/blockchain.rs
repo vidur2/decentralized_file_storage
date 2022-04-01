@@ -17,9 +17,8 @@ impl Blockchain {
     pub fn add_block(&mut self, file: FileInformation) -> bool {
         let next_index = self.0.len();
         let prev_block = &self.0[next_index - 1];
-        let block = Block::new(next_index as u128, prev_block.hash_block().unwrap(), file);
-        if self.check_block_validity(&block, &prev_block) {
-            drop(prev_block);
+        let block = Block::new(next_index as u128, prev_block.hash_block().unwrap(), file.clone());
+        if self.check_block_validity(&block, &prev_block) && !self.check_if_exists(file) {
             self.0.push(block);
             return true;
         } else {
@@ -82,6 +81,32 @@ impl Blockchain {
         }  else {
             return false;
         }
+    }
+
+    fn check_if_exists(&self, file: FileInformation) -> bool {
+        let serialized_file = serde_json::to_string(&file);
+
+        match serialized_file {
+            Ok(uw_file) => {
+                let serialized_bc = serde_json::to_string(&self);
+                match serialized_bc {
+                    Ok(serialied_bc_uw) => {
+                        if serialied_bc_uw.contains(&uw_file) {
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    },
+                    Err(_) => {
+                        return true;
+                    },
+                }
+            },
+            Err(_) => {
+                return true;
+            },
+        }
+
     }
 
 }
