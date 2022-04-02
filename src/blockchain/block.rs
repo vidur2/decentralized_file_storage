@@ -54,7 +54,7 @@ impl Block {
             index: 0,
             previous_hash: String::from(""),
             timestamp: Instant::now().seconds() as i128,
-            data: data
+            data
         }
     }
 }
