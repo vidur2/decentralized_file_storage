@@ -8,12 +8,23 @@ pub struct Blockchain(pub Vec<Block>);
 
 
 impl Blockchain {
+
+    /// Constructor for blockchain
     pub fn new() -> Self {
         let mut blockchain = Vec::new();
         blockchain.push(Block::genesis());
         return Self(blockchain);
     }
 
+    /// Adds block to blockchain
+    /// 
+    /// # Arguments
+    /// 
+    /// * `file`: A struct of type FileInformation that contains the data in the file being addded
+    /// 
+    /// # Returns
+    /// A boolean indicating whether adding the block was succesful
+    /// 
     pub fn add_block(&mut self, file: FileInformation) -> bool {
         let next_index = self.0.len();
         let prev_block = &self.0[next_index - 1];
@@ -26,6 +37,14 @@ impl Blockchain {
         }
     }
 
+    /// Gets the latest iteration of a Block containing the FileInformation for a specified uri
+    /// 
+    /// # Arguments
+    /// * `uri`: The uri/url that is used to search for the FilInformation
+    /// 
+    /// # Returns
+    /// An optional immutable reference to a Block
+    /// * If the uri is in the block chain, the option will be non-none
     pub fn find_block_by_uri(&self, uri: &str) -> Option<&Block> {
         let blockchain = &self.0;
         for block in blockchain.iter().rev() {
@@ -36,6 +55,13 @@ impl Blockchain {
         return None;
     }
 
+    /// Method used to add verify and add a block pushed over a websocket
+    /// 
+    /// # Arguments
+    /// * `new_block`: The block being added
+    /// 
+    /// # Returns
+    /// Boolean status on whether block is valid
     pub fn add_unverified_block(&mut self, new_block: Block) -> bool {
         if self.check_block_validity(&new_block, &self.0[self.0.len()]) {
             self.0.push(new_block);

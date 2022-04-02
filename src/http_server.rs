@@ -24,13 +24,15 @@ enum MessageType {
 }
 
 pub fn init_http() {
-    let listener = TcpListener::bind("127.0.0.1:9001").unwrap();
+    let listener = TcpListener::bind("127.0.0.1:8002").unwrap();
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
     let sockets: Arc<Mutex<Vec<SharedSocket>>> = Arc::new(Mutex::new(Vec::<SharedSocket>::new()));
 
     for stream in listener.incoming() {
         let mut stream = stream.unwrap();
-        let conn_type = check_connection_type(&mut stream.try_clone().unwrap());
+        let mut cloned_stream = stream.try_clone().unwrap();
+        let ws_info_wrapped = check_connection_type(&mut cloned_stream);
+        let conn_type = ws_info_wrapped.0;
         let sockets = sockets.clone();
         let blockchain = blockchain.clone();
 
@@ -97,20 +99,30 @@ pub fn init_http() {
     }
 }
 
-fn check_connection_type(stream: &mut TcpStream) -> ConnectionType {
+fn check_connection_type(stream: &mut TcpStream) -> (ConnectionType, Option<String>){
     let mut buffer = [0u8; 1024];
     match stream.read(&mut buffer) {
         Ok(_) => {
             let comparable = String::from_utf8(buffer.to_vec()).unwrap();
             if comparable.contains("Connection: Upgrade") {
-                return ConnectionType::Webocket;
+                let split_buffer: Vec<&str> = comparable.split("\n").collect();
+                let mut host = String::new();
+                for line in split_buffer {
+                    if line.starts_with("Origin: ") {
+                        let owned_line = String::from(line);
+                        let split_line: Vec<&str> = owned_line.split(": ").collect();
+                        let final_parse = split_line[1].replace("\r\n", "");
+                        host.push_str(&final_parse);
+                    }
+                }
+                return (ConnectionType::Webocket, Some(host));
             } else {
-                return ConnectionType::Http;
+                return (ConnectionType::Http, None);
             }
         }
 
         Err(_err) => {
-            return ConnectionType::Failuire;
+            return( ConnectionType::Failuire, None);
         }
     };
 }
@@ -120,11 +132,12 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
     let mut response_content = String::new();
     match stream.read(&mut buffer) {
         Ok(_) => {
-
+            println!("Shit");
+            println!("{}", String::from_utf8(buffer.to_vec()).unwrap());
             // Route to store a file on chain
             // Takes a FileInformation struct as input
             // `data` field should be a base64 url with mime type if it is frontend, otherwise it can be stored as any format, you just have to handle it
-            if buffer.starts_with(b"POST /store_information") {
+            if buffer.starts_with(b"POST /store_information HTTP/1.1") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
                 let file_infor_in_body: FileInformation = serde_json::from_str(&body).unwrap();
@@ -150,7 +163,7 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
             } 
             
             // Gets data from a specified url
-            else if buffer.starts_with(b"POST /get_information_by_url") {
+            else if buffer.starts_with(b"POST /get_information_by_url HTTP/1.1") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
                 let guarded=  blockchain.lock().unwrap();
