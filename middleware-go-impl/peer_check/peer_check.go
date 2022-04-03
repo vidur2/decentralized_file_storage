@@ -7,19 +7,6 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func checkIfValid(validated []util.AddressInformation, hostname string) bool {
-	inList := false
-
-	for _, host := range validated {
-		if host.SocketAddr == hostname {
-			inList = true
-			break
-		}
-	}
-
-	return inList
-}
-
 func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 	hostname := string(ctx.Request.Body())
 	valid := checkIfValid(validated, hostname)
@@ -32,6 +19,19 @@ func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformatio
 	} else {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 	}
+}
+
+func checkIfValid(validated []util.AddressInformation, hostname string) bool {
+	inList := false
+
+	for _, host := range validated {
+		if host.SocketAddr == hostname {
+			inList = true
+			break
+		}
+	}
+
+	return inList
 }
 
 func serializeList(validated []util.AddressInformation, currentHostname string) string {
