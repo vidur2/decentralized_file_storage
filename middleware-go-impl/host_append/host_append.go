@@ -2,22 +2,27 @@ package hostappend
 
 import (
 	"encoding/json"
+	"fmt"
 	"strconv"
+	"strings"
 	"time"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
 )
 
-func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) {
-	uri := string(ctx.Request.Header.RequestURI())
+func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
+	uri := "http://" + strings.Split(string(ctx.RemoteAddr().String()), ":")[0] + ":8002"
+	uri_ws := "ws://" + strings.Split(string(ctx.RemoteAddr().String()), ":")[0] + ":8003"
 	valid := testHost(uri)
 
 	if valid {
-		validated = append(validated, string(ctx.Request.Header.Host()))
+		validated = append(validated, util.AddressInformation{HttpAddr: uri, SocketAddr: uri_ws})
 	}
 
 	ctx.Response.AppendBodyString(strconv.FormatBool(valid))
+
+	return validated
 }
 
 var client *fasthttp.Client
@@ -73,6 +78,7 @@ func testHost(url string) bool {
 	err := client.Do(req, res)
 
 	if err != nil {
+		fmt.Println(err)
 		return false
 	} else {
 		req.SetRequestURI(url + "/get_information_by_url")
@@ -84,7 +90,6 @@ func testHost(url string) bool {
 		if err != nil {
 			return false
 		} else {
-
 			if checkedFileInf.Data == string(res.Body()) {
 				return true
 			} else {

@@ -1,15 +1,18 @@
 package peercheck
 
 import (
+	"fmt"
+	"strings"
+	"vidur2/middleware/util"
+
 	"github.com/valyala/fasthttp"
 )
 
-func checkIfValid(ctx *fasthttp.RequestCtx, validated []string) bool {
-	hostname := string(ctx.Request.Header.Host())
+func checkIfValid(validated []util.AddressInformation, hostname string) bool {
 	inList := false
 
 	for _, host := range validated {
-		if host == hostname {
+		if host.SocketAddr == hostname {
 			inList = true
 			break
 		}
@@ -18,25 +21,32 @@ func checkIfValid(ctx *fasthttp.RequestCtx, validated []string) bool {
 	return inList
 }
 
-func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {
-	valid := checkIfValid(ctx, validated)
+func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
+	hostname := "ws://" + strings.Split(string(ctx.RemoteAddr().String()), ":")[0] + ":8003"
+	valid := checkIfValid(validated, hostname)
 
 	if valid {
+		stringified := serializeList(validated, hostname)
 		ctx.SetStatusCode(fasthttp.StatusOK)
-		ctx.Response.AppendBody([]byte(serializeList(validated)))
+		fmt.Println(stringified)
+		ctx.Response.AppendBodyString(stringified)
 	} else {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)
 	}
 }
 
-func serializeList(validated []string) string {
-	returnType := "["
+func serializeList(validated []util.AddressInformation, currentHostname string) string {
+	returnType := ""
 
-	for _, host := range validated {
-		returnType += host
+	for idx, host := range validated {
+		if host.SocketAddr == currentHostname {
+			continue
+		} else if idx != len(validated)-1 {
+			returnType += host.SocketAddr + ","
+		} else {
+			returnType += host.SocketAddr
+		}
 	}
-
-	returnType += "]"
 
 	return returnType
 }

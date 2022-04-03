@@ -4,11 +4,12 @@ import (
 	"fmt"
 	hostappend "vidur2/middleware/host_append"
 	peercheck "vidur2/middleware/peer_check"
+	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
 )
 
-var validated []string
+var validated []util.AddressInformation
 
 func handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
@@ -16,7 +17,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 		peercheck.HandleGetPeers(ctx, validated)
 
 	case "/add_self_as_peer":
-		hostappend.HandleAddSelf(ctx, validated)
+		validated = hostappend.HandleAddSelf(ctx, validated)
 	}
 
 }
