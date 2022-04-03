@@ -63,112 +63,118 @@ pub fn handle_socket_connection(ws: WsOption, blockchain: SharedChain, sockets: 
 
     match ws {
         WsOption::Client(ws_uw) => {
-            
-            loop {
-                let msg = ws_uw.lock().unwrap().read_message().unwrap();
-                match msg {
-                    tungstenite::Message::Text(block_infor) => {
-                        let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
-                        let mut guarded = blockchain.lock().unwrap();
-                        let ws_iter = sockets.lock().unwrap();
-                        let reffed = serde_json::to_string_pretty(&guarded.0).unwrap();
-        
-                        match parsed {
-                            MessageType::Chain(new_bc) => {
-                                let ran = guarded.replace_chain(new_bc);
-                                
-                                if ran {
-                                    for socket in  ws_iter.iter() {
-        
-                                        if let WsOption::Server(socket_uw) = socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        } else if let WsOption::Client(socket_uw)= socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        }
-                                    }
-                                }
-                            }
-                            MessageType::Block(new_block) => {
-                                let ran = guarded.add_unverified_block(new_block);
-        
-                                if ran {
-                                    for socket in  ws_iter.iter() {
-        
-                                        if let WsOption::Server(socket_uw) = socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        } else if let WsOption::Client(socket_uw) = socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        }
-                                    }
-                                }
-                            },
-                        }
-                    },
-                    tungstenite::Message::Binary(_) => todo!(),
-                    _ => {
-                        println!("Invalid ws format")
-                    }
-                }
-            }
-            
+            _handle_ws_connection_client(ws_uw, blockchain, sockets)
         }
         
         WsOption::Server(ws_uw) => {
-            loop {
-                let msg = ws_uw.lock().unwrap().read_message().unwrap();
-                match msg {
-                    tungstenite::Message::Text(block_infor) => {
-                        let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
-                        let mut guarded = blockchain.lock().unwrap();
-                        let ws_iter = sockets.lock().unwrap();
-                        let reffed = serde_json::to_string_pretty(&guarded.0).unwrap();
-        
-                        match parsed {
-                            MessageType::Chain(new_bc) => {
-                                let ran = guarded.replace_chain(new_bc);
-                                
-                                if ran {
-                                    for socket in  ws_iter.iter() {
-        
-                                        if let WsOption::Server(socket_uw) = socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        } else if let WsOption::Client(socket_uw)= socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        }
-                                    }
+            _handle_ws_connection_server(ws_uw, blockchain, sockets)
+        },
+    }
+}
+
+fn _handle_ws_connection_client(ws_uw: SharedSocketSafe, blockchain: SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
+    loop {
+        let msg = ws_uw.lock().unwrap().read_message().unwrap();
+        match msg {
+            tungstenite::Message::Text(block_infor) => {
+                let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
+                let mut guarded = blockchain.lock().unwrap();
+                let ws_iter = sockets.lock().unwrap();
+                let reffed = serde_json::to_string_pretty(&guarded.0).unwrap();
+
+                match parsed {
+                    MessageType::Chain(new_bc) => {
+                        let ran = guarded.replace_chain(new_bc);
+                        
+                        if ran {
+                            for socket in  ws_iter.iter() {
+
+                                if let WsOption::Server(socket_uw) = socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                } else if let WsOption::Client(socket_uw)= socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
                                 }
                             }
-                            MessageType::Block(new_block) => {
-                                let ran = guarded.add_unverified_block(new_block);
-        
-                                if ran {
-                                    for socket in  ws_iter.iter() {
-        
-                                        if let WsOption::Server(socket_uw) = socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        } else if let WsOption::Client(socket_uw) = socket {
-                                            let mut socket_writable = socket_uw.lock().unwrap();
-                                            socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-                                        }
-                                    }
+                        }
+                    }
+                    MessageType::Block(new_block) => {
+                        let ran = guarded.add_unverified_block(new_block);
+
+                        if ran {
+                            for socket in  ws_iter.iter() {
+
+                                if let WsOption::Server(socket_uw) = socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                } else if let WsOption::Client(socket_uw) = socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
                                 }
-                            },
+                            }
                         }
                     },
-                    tungstenite::Message::Binary(_) => todo!(),
-                    _ => {
-                        println!("Invalid ws format")
-                    }
                 }
+            },
+            tungstenite::Message::Binary(_) => todo!(),
+            _ => {
+                println!("Invalid ws format")
             }
-        },
+        }
+    }
+}
+
+fn _handle_ws_connection_server(ws_uw: SharedSocket, blockchain: SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
+    loop {
+        let msg = ws_uw.lock().unwrap().read_message().unwrap();
+        match msg {
+            tungstenite::Message::Text(block_infor) => {
+                let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
+                let mut guarded = blockchain.lock().unwrap();
+                let ws_iter = sockets.lock().unwrap();
+                let reffed = serde_json::to_string_pretty(&guarded.0).unwrap();
+
+                match parsed {
+                    MessageType::Chain(new_bc) => {
+                        let ran = guarded.replace_chain(new_bc);
+                        
+                        if ran {
+                            for socket in  ws_iter.iter() {
+
+                                if let WsOption::Server(socket_uw) = socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                } else if let WsOption::Client(socket_uw)= socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                }
+                            }
+                        }
+                    }
+                    MessageType::Block(new_block) => {
+                        let ran = guarded.add_unverified_block(new_block);
+
+                        if ran {
+                            for socket in  ws_iter.iter() {
+
+                                if let WsOption::Server(socket_uw) = socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                } else if let WsOption::Client(socket_uw) = socket {
+                                    let mut socket_writable = socket_uw.lock().unwrap();
+                                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                }
+                            }
+                        }
+                    },
+                }
+            },
+            tungstenite::Message::Binary(_) => todo!(),
+            _ => {
+                println!("Invalid ws format")
+            }
+        }
     }
 }
 
