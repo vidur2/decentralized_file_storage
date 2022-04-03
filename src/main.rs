@@ -26,8 +26,8 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
 
         let blockchain = Arc::clone(&blockchain);
         let ws = Arc::new(Mutex::new(tungstenite::client::connect(*host).unwrap().0));
-        let sockets = sockets.clone();
-        sockets.lock().unwrap().push(WsOption::Client(ws.clone()));
+        let sockets = Arc::clone(&sockets);
+        sockets.lock().unwrap().push(WsOption::Client(Arc::clone(&ws)));
 
         thread::spawn(move || {
             handle_socket_connection(WsOption::Client(ws), blockchain, sockets);
@@ -43,9 +43,8 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
                                 .unwrap();
 }
 fn main() {
-    // comment in when middleware is done 
-    // init_node();
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
     let sockets: Arc<Mutex<Vec<WsOption>>> = Arc::new(Mutex::new(Vec::<WsOption>::new()));
+    init_node(Arc::clone(&blockchain), Arc::clone(&sockets));
     http_server::init_http(blockchain, sockets);
 }
