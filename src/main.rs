@@ -1,8 +1,7 @@
-use std::{sync::{Mutex, Arc}, thread, net::TcpStream};
+use std::{sync::{Mutex, Arc}, thread};
 
-use blockchain::blockchain::{SharedChain, Blockchain};
-use http_server::{SharedSocket, WsOption};
-use tungstenite::WebSocket;
+use blockchain::{blockchain::{SharedChain, Blockchain}};
+use http_server::WsOption;
 
 use crate::http_server::handle_socket_connection;
 
@@ -37,7 +36,7 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
     let current_ip = serde_json::to_string(&local_ip().unwrap()).unwrap();
     let client = reqwest::blocking::Client::new();
 
-    let resp = client.post(MIDDLEWARE_ADDR_POST)
+    client.post(MIDDLEWARE_ADDR_POST)
                                 .body(current_ip)
                                 .send()
                                 .unwrap();
@@ -45,6 +44,6 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
     let sockets: Arc<Mutex<Vec<WsOption>>> = Arc::new(Mutex::new(Vec::<WsOption>::new()));
-    init_node(Arc::clone(&blockchain), Arc::clone(&sockets));
-    http_server::init_http(blockchain, sockets);
+    http_server::init_http(Arc::clone(&blockchain), Arc::clone(&sockets));
+    init_node(blockchain, sockets);
 }
