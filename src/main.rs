@@ -13,37 +13,43 @@ const MIDDLEWARE_ADDR_POST: &str = "http://localhost:8080/add_self_as_peer";
 
 fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
 
-    use local_ip_address::local_ip;
-
-    let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_GET)
+    let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_POST)
                                     .unwrap()
                                     .text()
                                     .unwrap();
-    let parsed_response: Vec<&str> = serde_json::from_str(&resp).unwrap();
 
-    for host in parsed_response.iter() {
+    if resp == "true" {
+        let mut reffed_bc = blockchain.lock().unwrap();
 
-        let blockchain = Arc::clone(&blockchain);
-        let ws = Arc::new(Mutex::new(tungstenite::client::connect(*host).unwrap().0));
-        let sockets = Arc::clone(&sockets);
-        sockets.lock().unwrap().push(WsOption::Client(Arc::clone(&ws)));
+        *reffed_bc = Blockchain::new();
 
-        thread::spawn(move || {
-            handle_socket_connection(WsOption::Client(ws), blockchain, sockets);
-        });
+        drop(reffed_bc);
+
+        let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_GET)
+                                        .unwrap()
+                                        .text()
+                                        .unwrap();
+        let parsed_response: Vec<&str> = serde_json::from_str(&resp).unwrap();
+
+        for host in parsed_response.iter() {
+
+            let blockchain = Arc::clone(&blockchain);
+            let ws = Arc::new(Mutex::new(tungstenite::client::connect(*host).unwrap().0));
+            let sockets = Arc::clone(&sockets);
+            sockets.lock().unwrap().push(WsOption::Client(Arc::clone(&ws)));
+
+            thread::spawn(move || {
+                handle_socket_connection(WsOption::Client(ws), blockchain, sockets);
+            });
+        }
     }
-
-    let current_ip = serde_json::to_string(&local_ip().unwrap()).unwrap();
-    let client = reqwest::blocking::Client::new();
-
-    client.post(MIDDLEWARE_ADDR_POST)
-                                .body(current_ip)
-                                .send()
-                                .unwrap();
 }
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
     let sockets: Arc<Mutex<Vec<WsOption>>> = Arc::new(Mutex::new(Vec::<WsOption>::new()));
     http_server::init_http(Arc::clone(&blockchain), Arc::clone(&sockets));
+    /*
+    // Comment in  when go server has been tested
     init_node(blockchain, sockets);
+    */
 }
