@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
-	"strings"
 	"time"
 	"vidur2/middleware/util"
 
@@ -12,17 +11,23 @@ import (
 )
 
 func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
-	uri := "http://" + strings.Split(string(ctx.RemoteAddr().String()), ":")[0] + ":8002"
-	uri_ws := "ws://" + strings.Split(string(ctx.RemoteAddr().String()), ":")[0] + ":8003"
-	valid := testHost(uri)
+	var ipInformation util.AddressInformation
+	err := json.Unmarshal(ctx.Request.Body(), &ipInformation)
 
-	if valid {
-		validated = append(validated, util.AddressInformation{HttpAddr: uri, SocketAddr: uri_ws})
+	if err == nil {
+		fmt.Println(ipInformation)
+		valid := testHost(ipInformation.HttpAddr)
+
+		if valid {
+			validated = append(validated, ipInformation)
+		}
+
+		ctx.Response.AppendBodyString(strconv.FormatBool(valid))
+
+		return validated
+	} else {
+		return nil
 	}
-
-	ctx.Response.AppendBodyString(strconv.FormatBool(valid))
-
-	return validated
 }
 
 var client *fasthttp.Client

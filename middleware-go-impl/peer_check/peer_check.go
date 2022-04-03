@@ -2,7 +2,6 @@ package peercheck
 
 import (
 	"fmt"
-	"strings"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
@@ -22,7 +21,7 @@ func checkIfValid(validated []util.AddressInformation, hostname string) bool {
 }
 
 func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
-	hostname := "ws://" + strings.Split(string(ctx.RemoteAddr().String()), ":")[0] + ":8003"
+	hostname := string(ctx.Request.Body())
 	valid := checkIfValid(validated, hostname)
 
 	if valid {
