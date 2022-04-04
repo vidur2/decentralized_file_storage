@@ -15,14 +15,17 @@ var validated []util.AddressInformation
 func handler(ctx *fasthttp.RequestCtx) {
 
 	switch string(ctx.Path()) {
+
 	case "/get_peers":
 		peercheck.HandleGetPeers(ctx, validated)
 		fmt.Println(validated)
 
 	case "/add_self_as_peer":
 		validated = hostappend.HandleAddSelf(ctx, validated)
+
 	case "/get_information_by_url":
 		validated = clientside.HandleFileOperation(ctx, validated)
+
 	case "/store_information":
 		validated = clientside.HandleFileOperation(ctx, validated)
 
