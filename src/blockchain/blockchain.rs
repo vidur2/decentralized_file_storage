@@ -14,6 +14,8 @@ pub struct Blockchain(pub Vec<Block>);
 impl Blockchain {
 
     /// Constructor for blockchain
+    /// * Takes no arguments
+    /// * Default block is always the original genesis block
     pub fn new() -> Self {
         let mut blockchain = Vec::new();
         blockchain.push(Block::genesis());
@@ -75,7 +77,9 @@ impl Blockchain {
         }
     }
 
-    // Checks whether a block is valid
+    /// Checks whether a block is valid
+    /// * Used to verify adding of files over websocket
+    /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
 
         if new_block.index - 1 != previous_block.index || previous_block.hash_block().unwrap() != new_block.previous_hash {
@@ -85,7 +89,8 @@ impl Blockchain {
         }
     }
 
-    // Checks whether an entered chain is valid
+    /// Checks whether an entered chain is valid
+    /// * Used to verify blockchain recieved over websocket
     fn check_chain_validity(&self, new_chain: &Vec<Block>) -> bool {
 
         // Return variable

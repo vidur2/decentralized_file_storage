@@ -3,6 +3,16 @@ use sha2::{ Sha256, Digest };
 use serde::{Serialize, Deserialize};
 use super::file_infor::{FileInformation, FileType};
 
+
+/// Struct to represent a single file on the blockchain
+/// 
+/// # Fields
+/// 
+/// * `index`- Where the block is in the blockchain
+/// * `previous_hash`- Sha256 representation of the data in the previous block
+///     * Used for validation
+///     * Contains the previous hash of the last block
+/// * `data`- The actual file stored in the block
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Block {
     pub index: u128,
