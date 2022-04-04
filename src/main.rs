@@ -1,7 +1,7 @@
 use std::{sync::{Mutex, Arc}, thread};
 
 use blockchain::{blockchain::{SharedChain, Blockchain}};
-use http_server::WsOption;
+use http_server::{SharedSocketSafe};
 use serde::Serialize;
 
 use crate::http_server::handle_socket_connection;
@@ -37,7 +37,7 @@ fn get_addr() -> IpInformation {
     }
 }
 
-fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
+fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Arc<Mutex<Vec<SharedSocketSafe>>>) {
 
     let addr = get_addr();
     let req_body_infor = serde_json::to_string(&addr).unwrap();
@@ -73,10 +73,10 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
                 let blockchain = Arc::clone(&blockchain);
                 let ws = Arc::new(Mutex::new(tungstenite::client::connect(*host).unwrap().0));
                 let sockets = Arc::clone(&sockets);
-                sockets.lock().unwrap().push(WsOption::Client(Arc::clone(&ws)));
+                sockets.lock().unwrap().push(Arc::clone(&ws));
 
                 thread::spawn(move || {
-                    handle_socket_connection(WsOption::Client(ws), blockchain, sockets);
+                    handle_socket_connection(ws, blockchain, sockets);
                 });
             }
         }
@@ -84,7 +84,7 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
 }
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
-    let sockets: Arc<Mutex<Vec<WsOption>>> = Arc::new(Mutex::new(Vec::<WsOption>::new()));
+    let sockets: Arc<Mutex<Vec<SharedSocketSafe>>> = Arc::new(Mutex::new(Vec::<SharedSocketSafe>::new()));
     
     let server_bc = Arc::clone(&blockchain);
     let server_sockets = Arc::clone(&sockets);
