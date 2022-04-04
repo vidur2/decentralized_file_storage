@@ -1,7 +1,11 @@
+use std::sync::{Mutex, Arc};
+
 use serde::{Deserialize, Serialize};
 
 use super::block::Block;
 use super::file_infor::FileInformation;
+
+pub type SharedChain =  Arc<Mutex<Blockchain>>;
 
 #[derive(Deserialize, Serialize)]
 pub struct Blockchain(pub Vec<Block>);
