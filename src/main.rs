@@ -1,7 +1,7 @@
 use std::{sync::{Mutex, Arc}, thread};
 
-use blockchain::{blockchain::{SharedChain, Blockchain}};
-use http_server::{SharedSocketSafe};
+use blockchain::blockchain::{SharedChain, Blockchain};
+use http_server::SharedSocket;
 use serde::Serialize;
 
 use crate::http_server::handle_socket_connection;
@@ -37,7 +37,7 @@ fn get_addr() -> IpInformation {
     }
 }
 
-fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Arc<Mutex<Vec<SharedSocketSafe>>>) {
+fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
 
     let addr = get_addr();
     let req_body_infor = serde_json::to_string(&addr).unwrap();
@@ -84,7 +84,7 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
 }
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
-    let sockets: Arc<Mutex<Vec<SharedSocketSafe>>> = Arc::new(Mutex::new(Vec::<SharedSocketSafe>::new()));
+    let sockets: Arc<Mutex<Vec<SharedSocket>>> = Arc::new(Mutex::new(Vec::<SharedSocket>::new()));
     
     let server_bc = Arc::clone(&blockchain);
     let server_sockets = Arc::clone(&sockets);

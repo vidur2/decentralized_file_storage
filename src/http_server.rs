@@ -10,7 +10,7 @@ use tungstenite::stream::MaybeTlsStream;
 use tungstenite::{accept, WebSocket};
 
 
-pub type SharedSocketSafe = Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>;
+pub type SharedSocket = Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>;
 
 
 #[derive(Deserialize)]
@@ -19,7 +19,7 @@ enum MessageType {
     Block(Block)
 }
 
-pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocketSafe>>>) {
+pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
     let http_listener = TcpListener::bind("127.0.0.1:8002").unwrap();
     let ws_listener = TcpListener::bind("127.0.0.1:8003").unwrap();
 
@@ -71,12 +71,12 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocketSaf
 }
 
 // Handles the two diff types of socket connections the same way
-pub fn handle_socket_connection(ws: SharedSocketSafe, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocketSafe>>>) {
+pub fn handle_socket_connection(ws: SharedSocket, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
 
     _handle_ws_connection_client(ws, blockchain, sockets)
 }
 
-fn _handle_ws_connection_client(ws_uw: SharedSocketSafe, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocketSafe>>>) {
+fn _handle_ws_connection_client(ws_uw: SharedSocket, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
     loop {
         let msg = ws_uw.lock().unwrap().read_message().unwrap();
         match msg {
@@ -201,7 +201,7 @@ fn _handle_ws_connection_client(ws_uw: SharedSocketSafe, blockchain: SharedChain
 //     };
 // }
 
-fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocketSafe>>>) {
+fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
     let mut buffer = [0u8; 1024];
     let mut response_content = String::new();
     match stream.read(&mut buffer) {
