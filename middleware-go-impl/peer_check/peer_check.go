@@ -1,7 +1,6 @@
 package peercheck
 
 import (
-	"fmt"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
@@ -14,7 +13,6 @@ func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformatio
 	if valid {
 		stringified := serializeList(validated, hostname)
 		ctx.SetStatusCode(fasthttp.StatusOK)
-		fmt.Println(stringified)
 		ctx.Response.AppendBodyString(stringified)
 	} else {
 		ctx.SetStatusCode(fasthttp.StatusBadRequest)

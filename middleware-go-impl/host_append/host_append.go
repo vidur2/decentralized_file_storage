@@ -9,7 +9,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
+func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
 	var ipInformation util.AddressInformation
 	err := json.Unmarshal(ctx.Request.Body(), &ipInformation)
 
@@ -24,6 +24,8 @@ func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		ctx.Response.AppendBodyString(strconv.FormatBool(valid))
 
-		util.ValidatedRecv <- validated
+		return validated
+	} else {
+		return nil
 	}
 }
