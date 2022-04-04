@@ -4,6 +4,7 @@ name = "file_blockchain_but_efficient"
 version = "0.1.0"
 [dependencies]
 base64-url = "*"
+ctrlc = "*"
 datetime = "*"
 local-ip-address = "*"
 serde_json = "*"

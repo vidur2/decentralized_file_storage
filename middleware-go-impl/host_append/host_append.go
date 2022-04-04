@@ -21,6 +21,7 @@ func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation
 			validated = append(validated, ipInformation)
 		}
 
+		ctx.SetStatusCode(fasthttp.StatusOK)
 		ctx.Response.AppendBodyString(strconv.FormatBool(valid))
 
 		return validated

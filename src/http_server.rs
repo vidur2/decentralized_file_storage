@@ -29,26 +29,43 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
     let http_listener = TcpListener::bind("127.0.0.1:8002").unwrap();
     let ws_listener = TcpListener::bind("127.0.0.1:8003").unwrap();
 
+    // Create pointers for thread
     let ws_blockchain = Arc::clone(&blockchain);
     let ws_sockets = Arc::clone(&sockets);
     thread::spawn(move || {
+
+        // General handler for ws conn
         for stream in ws_listener.incoming() {
             let stream = stream.unwrap();
             let blockchain = Arc::clone(&ws_blockchain);
             let sockets = Arc::clone(&ws_sockets);
 
             thread::spawn(move || {
+
+                // Bringing pointers into thread
                 let ws = Arc::new(Mutex::new(accept(stream).unwrap()));
                 let mut socket_guard = sockets.lock().unwrap();
                 socket_guard.append(&mut vec![WsOption::Server(Arc::clone(&ws))]);
                 drop(socket_guard);
+
+                // Handle user off
+                let ws_ctrlc = Arc::clone(&ws);
+                ctrlc::set_handler(move || {
+                    let mut ws_guard = ws_ctrlc.lock().unwrap();
+                    ws_guard.close(None).expect("Could not close");
+                }).expect("Could not add listener");
+
+
                 handle_socket_connection(WsOption::Server(ws), blockchain, sockets)
             });
         }
     });
 
+    // Create pointers for http server
     let http_blockchain = Arc::clone(&blockchain);
     let http_sockets = Arc::clone(&sockets);
+
+    // Http Handler
     for stream in http_listener.incoming() {
         let mut stream = stream.unwrap();
         let blockchain = Arc::clone(&http_blockchain);
@@ -59,6 +76,7 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
     }
 }
 
+// Handles the two diff types of socket connections the same way
 pub fn handle_socket_connection(ws: WsOption, blockchain: SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
 
     match ws {
