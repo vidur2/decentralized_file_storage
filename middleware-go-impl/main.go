@@ -13,17 +13,22 @@ import (
 var validated []util.AddressInformation
 
 func handler(ctx *fasthttp.RequestCtx) {
+	util.InitValidatedRecv()
+
 	switch string(ctx.Path()) {
 	case "/get_peers":
-		peercheck.HandleGetPeers(ctx, validated)
+		go peercheck.HandleGetPeers(ctx, validated)
 
 	case "/add_self_as_peer":
-		validated = hostappend.HandleAddSelf(ctx, validated)
+		go hostappend.HandleAddSelf(ctx, validated)
+		validated = <-util.ValidatedRecv
 
 	case "/get_information_by_url":
-		validated = clientside.HandleFileOperation(ctx, validated)
+		go clientside.HandleFileOperation(ctx, validated)
+		validated = <-util.ValidatedRecv
 	case "/store_information":
-		validated = clientside.HandleFileOperation(ctx, validated)
+		go clientside.HandleFileOperation(ctx, validated)
+		validated = <-util.ValidatedRecv
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)

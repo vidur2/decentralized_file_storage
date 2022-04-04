@@ -7,7 +7,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func HandleFileOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
+func HandleFileOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 
 	// Original getting of variables
 	uri := string(ctx.Request.Body())
@@ -30,7 +30,7 @@ func HandleFileOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInfor
 		ctx.Response.AppendBodyString("All nodes are inactive right now")
 	}
 
-	return validated
+	util.ValidatedRecv <- validated
 }
 
 func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (error, fasthttp.Response) {
