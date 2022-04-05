@@ -1,6 +1,6 @@
 use std::{sync::{Mutex, Arc}, thread};
 
-use blockchain::blockchain::{SharedChain, Blockchain};
+use blockchain::{blockchain::{SharedChain, Blockchain}, block::Block};
 use http_server::SharedSocket;
 use serde::Serialize;
 
@@ -9,6 +9,7 @@ use crate::http_server::handle_socket_connection;
 mod blockchain;
 mod http_server;
 
+const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
 const MIDDLEWARE_ADDR_GET: &str = "http://localhost:8080/get_peers";
 const MIDDLEWARE_ADDR_POST: &str = "http://localhost:8080/add_self_as_peer";
 
@@ -39,10 +40,10 @@ fn get_addr() -> IpInformation {
 
 fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
 
+    let client = reqwest::blocking::Client::new();
+
     let addr = get_addr();
     let req_body_infor = serde_json::to_string(&addr).unwrap();
-
-    let client = reqwest::blocking::Client::new();
 
     let resp = client.post(MIDDLEWARE_ADDR_POST)
         .body(req_body_infor)
@@ -53,20 +54,28 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
     if &resp == "true" {
 
         drop(resp);
-
-        let mut reffed_bc = blockchain.lock().unwrap();
-
-        *reffed_bc = Blockchain::new();
-
-        drop(reffed_bc);
-
         let resp = client.post(MIDDLEWARE_ADDR_GET)
             .body(addr.socket_addr)
             .send().unwrap()
             .text()
             .unwrap();
         
+        let mut reffed_bc = blockchain.lock().unwrap();
+        
         if resp != "" {
+
+            let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
+            .unwrap()
+            .text()
+            .unwrap();
+    
+            let blockchain_vec: Vec<Block> = serde_json::from_str(&blockchain_str).unwrap();
+            drop(blockchain_str);
+
+            *reffed_bc = Blockchain(blockchain_vec);
+
+            drop(reffed_bc);
+
             let parsed_response: Vec<&str> = resp.split(",").collect();
 
             for host in parsed_response.iter() {
@@ -79,6 +88,8 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
                     handle_socket_connection(ws, blockchain, sockets);
                 });
             }
+        } else {
+            *reffed_bc = Blockchain::new();
         }
     }
 }

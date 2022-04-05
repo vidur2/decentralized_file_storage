@@ -29,6 +29,9 @@ func handler(ctx *fasthttp.RequestCtx) {
 	case "/store_information":
 		validated = clientside.HandleFileOperation(ctx, validated)
 
+	case "/get_blocks":
+		validated = clientside.HandleFileOperation(ctx, validated)
+
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
 		ctx.Response.AppendBodyString("Invalid Path")

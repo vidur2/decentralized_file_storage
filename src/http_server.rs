@@ -267,6 +267,13 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
                     },
                 }
             }
+
+            // Return blocks from blockchain
+            else if buffer.starts_with(b"GET /get_blocks HTTP/1.1") {
+                let blockchain = blockchain.lock().unwrap();
+                let blocks_as_str = serde_json::to_string(&blockchain.0).unwrap();
+                response_content.push_str(&blocks_as_str);
+            }
             stream.write(response_content.as_bytes()).unwrap();
         },
         Err(_) => todo!(),
