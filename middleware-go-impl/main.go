@@ -19,7 +19,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
 
 	case "/get_peers":
-		peercheck.HandleGetPeersSocket(ctx, validated)
+		go peercheck.HandleGetPeersSocket(ctx)
 
 	case "/add_self_as_peer":
 		go hostappend.HandleAddSelf(ctx, validated)

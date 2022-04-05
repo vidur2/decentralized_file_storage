@@ -1,6 +1,12 @@
-use std::{sync::{Mutex, Arc}, thread};
+use std::{
+    sync::{Arc, Mutex},
+    thread,
+};
 
-use blockchain::{blockchain::{SharedChain, Blockchain}, block::Block};
+use blockchain::{
+    block::Block,
+    blockchain::{Blockchain, SharedChain},
+};
 use http_server::SharedSocket;
 use serde::Serialize;
 
@@ -16,7 +22,7 @@ const MIDDLEWARE_ADDR_POST: &str = "http://localhost:8080/add_self_as_peer";
 #[derive(Serialize)]
 struct IpInformation {
     socket_addr: String,
-    http_addr: String
+    http_addr: String,
 }
 
 fn get_addr() -> IpInformation {
@@ -34,41 +40,45 @@ fn get_addr() -> IpInformation {
 
     return IpInformation {
         socket_addr: String::from(split_socket_addr[0]),
-        http_addr: String::from(split_http_addr[0])
-    }
+        http_addr: String::from(split_http_addr[0]),
+    };
 }
 
-fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
-
+fn init_node(
+    blockchain: crate::blockchain::blockchain::SharedChain,
+    sockets: Arc<Mutex<Vec<SharedSocket>>>,
+) {
     let client = reqwest::blocking::Client::new();
 
     let addr = get_addr();
     let req_body_infor = serde_json::to_string(&addr).unwrap();
 
-    let resp = client.post(MIDDLEWARE_ADDR_POST)
+    let resp = client
+        .post(MIDDLEWARE_ADDR_POST)
         .body(req_body_infor)
-        .send().unwrap()
+        .send()
+        .unwrap()
         .text()
         .unwrap();
 
     if &resp == "true" {
-
         drop(resp);
-        let resp = client.post(MIDDLEWARE_ADDR_GET)
+        let resp = client
+            .post(MIDDLEWARE_ADDR_GET)
             .body(addr.socket_addr)
-            .send().unwrap()
-            .text()
-            .unwrap();
-        
-        let mut reffed_bc = blockchain.lock().unwrap();
-        
-        if resp != "" {
-
-            let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
+            .send()
             .unwrap()
             .text()
             .unwrap();
-    
+
+        let mut reffed_bc = blockchain.lock().unwrap();
+
+        if resp != "" {
+            let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
+                .unwrap()
+                .text()
+                .unwrap();
+
             let blockchain_vec: Vec<Block> = serde_json::from_str(&blockchain_str).unwrap();
             drop(blockchain_str);
 
@@ -97,18 +107,17 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
     let sockets: Arc<Mutex<Vec<SharedSocket>>> = Arc::new(Mutex::new(Vec::<SharedSocket>::new()));
-    
+
     let server_bc = Arc::clone(&blockchain);
     let server_sockets = Arc::clone(&sockets);
-    let http_server_handle = thread::spawn(move ||{
+    let http_server_handle = thread::spawn(move || {
         http_server::init_http(server_bc, server_sockets);
     });
 
-    
     // Comment in  when go server has been tested
     init_node(blockchain, sockets);
-    
 
-    http_server_handle.join().expect("Failed to terminate thread");
-
+    http_server_handle
+        .join()
+        .expect("Failed to terminate thread");
 }

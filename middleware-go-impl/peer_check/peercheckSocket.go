@@ -9,7 +9,8 @@ import (
 // Gives requestser a slice of type AddressInformation containing all addresses in blockchain
 //
 // Note one must run a node to be part of this list
-func HandleGetPeersSocket(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
+func HandleGetPeersSocket(ctx *fasthttp.RequestCtx) {
+	validated := <-util.ValidatedChannel
 	hostname := string(ctx.Request.Body())
 	valid := checkIfValid(validated, hostname)
 
