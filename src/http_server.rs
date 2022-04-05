@@ -1,22 +1,20 @@
-use std::net::{TcpListener, TcpStream};
-use std::sync::{ Arc, Mutex };
-use std::thread;
-use std::io::{Read, Write};
-use crate::blockchain::blockchain::{SharedChain};
 use crate::blockchain::block::Block;
+use crate::blockchain::blockchain::SharedChain;
 use crate::blockchain::file_infor::FileInformation;
 use serde::Deserialize;
+use std::io::{Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::sync::{Arc, Mutex};
+use std::thread;
 use tungstenite::stream::MaybeTlsStream;
 use tungstenite::{accept, WebSocket};
 
-
 pub type SharedSocket = Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>;
-
 
 #[derive(Deserialize)]
 enum MessageType {
     Chain(Vec<Block>),
-    Block(Block)
+    Block(Block),
 }
 
 pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
@@ -27,7 +25,6 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>
     let ws_blockchain = Arc::clone(&blockchain);
     let ws_sockets = Arc::clone(&sockets);
     thread::spawn(move || {
-
         // General handler for ws conn
         for stream in ws_listener.incoming() {
             let stream = stream.unwrap();
@@ -35,7 +32,6 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>
             let sockets = Arc::clone(&ws_sockets);
 
             thread::spawn(move || {
-
                 // Bringing pointers into thread
                 let ws = Arc::new(Mutex::new(accept(MaybeTlsStream::Plain(stream)).unwrap()));
                 let mut socket_guard = sockets.lock().unwrap();
@@ -47,8 +43,8 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>
                 ctrlc::set_handler(move || {
                     let mut ws_guard = ws_ctrlc.lock().unwrap();
                     ws_guard.close(None).expect("Could not close");
-                }).expect("Could not add listener");
-
+                })
+                .expect("Could not add listener");
 
                 handle_socket_connection(ws, blockchain, sockets)
             });
@@ -64,19 +60,24 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>
         let mut stream = stream.unwrap();
         let blockchain = Arc::clone(&http_blockchain);
         let sockets = Arc::clone(&http_sockets);
-        thread::spawn(move || {
-            handle_http(&mut stream, blockchain, sockets)
-        });
+        thread::spawn(move || handle_http(&mut stream, blockchain, sockets));
     }
 }
 
 // Handles the two diff types of socket connections the same way
-pub fn handle_socket_connection(ws: SharedSocket, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
-
+pub fn handle_socket_connection(
+    ws: SharedSocket,
+    blockchain: SharedChain,
+    sockets: Arc<Mutex<Vec<SharedSocket>>>,
+) {
     _handle_ws_connection_client(ws, blockchain, sockets)
 }
 
-fn _handle_ws_connection_client(ws_uw: SharedSocket, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
+fn _handle_ws_connection_client(
+    ws_uw: SharedSocket,
+    blockchain: SharedChain,
+    sockets: Arc<Mutex<Vec<SharedSocket>>>,
+) {
     loop {
         let msg = ws_uw.lock().unwrap().read_message().unwrap();
         match msg {
@@ -89,11 +90,13 @@ fn _handle_ws_connection_client(ws_uw: SharedSocket, blockchain: SharedChain, so
                 match parsed {
                     MessageType::Chain(new_bc) => {
                         let ran = guarded.replace_chain(new_bc);
-                        
+
                         if ran {
-                            for socket in  ws_iter.iter() {
+                            for socket in ws_iter.iter() {
                                 let mut socket_writable = socket.lock().unwrap();
-                                socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                socket_writable
+                                    .write_message(tungstenite::Message::Text(reffed.clone()))
+                                    .expect("Could not send blockchain message");
                             }
                         }
                     }
@@ -101,14 +104,16 @@ fn _handle_ws_connection_client(ws_uw: SharedSocket, blockchain: SharedChain, so
                         let ran = guarded.add_unverified_block(new_block);
 
                         if ran {
-                            for socket in  ws_iter.iter() {
+                            for socket in ws_iter.iter() {
                                 let mut socket_writable = socket.lock().unwrap();
-                                socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                                socket_writable
+                                    .write_message(tungstenite::Message::Text(reffed.clone()))
+                                    .expect("Could not send blockchain message");
                             }
                         }
-                    },
+                    }
                 }
-            },
+            }
             tungstenite::Message::Binary(_) => todo!(),
             _ => {
                 println!("Invalid ws format")
@@ -117,9 +122,11 @@ fn _handle_ws_connection_client(ws_uw: SharedSocket, blockchain: SharedChain, so
     }
 }
 
-
-fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
-
+fn handle_http(
+    stream: &mut TcpStream,
+    blockchain: SharedChain,
+    sockets: Arc<Mutex<Vec<SharedSocket>>>,
+) {
     // Initialization of reading var
     let mut buffer = [0u8; 1024];
     let mut response_content = String::new();
@@ -127,7 +134,6 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
     // Handles stream
     match stream.read(&mut buffer) {
         Ok(_) => {
-
             // Route to store a file on chain
             // Takes a FileInformation struct as input
             // `data` field should be a base64 url with mime type if it is frontend, otherwise it can be stored as any format, you just have to handle it
@@ -141,10 +147,11 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
                 let ws_iter = sockets.lock().unwrap();
                 let reffed = serde_json::to_string_pretty(&guard.0).unwrap();
 
-                for socket in  ws_iter.iter() {
-
+                for socket in ws_iter.iter() {
                     let mut socket_writable = socket.lock().unwrap();
-                    socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
+                    socket_writable
+                        .write_message(tungstenite::Message::Text(reffed.clone()))
+                        .expect("Could not send blockchain message");
                 }
 
                 let resp = "Successful";
@@ -155,21 +162,19 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
                 );
 
                 response_content.push_str(&response)
-
-            } 
-            
+            }
             // Gets data from a specified url
             else if buffer.starts_with(b"POST /get_information_by_url HTTP/1.1") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
-                let guarded=  blockchain.lock().unwrap();
+                let guarded = blockchain.lock().unwrap();
                 let block = guarded.find_block_by_uri(&body);
                 drop(body);
-                
+
                 match block {
                     Some(block_uw) => {
                         let data = &block_uw.data.data;
-                        // Write response here 
+                        // Write response here
                         let response = format!(
                             "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
                             data.len(),
@@ -187,10 +192,9 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
                         );
                         response_content.push_str(&response);
                         drop(response);
-                    },
+                    }
                 }
             }
-
             // Return blocks from blockchain
             else if buffer.starts_with(b"GET /get_blocks HTTP/1.1") {
                 let blockchain = blockchain.lock().unwrap();
@@ -202,11 +206,11 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
                 );
 
                 println!("{}", &response);
-                
+
                 response_content.push_str(&response);
             }
             stream.write(response_content.as_bytes()).unwrap();
-        },
+        }
         Err(_) => todo!(),
     }
 }
@@ -215,8 +219,14 @@ fn parse_body(body: String) -> String {
     let split_string: Vec<&str> = body.split("Content-Length: ").collect();
     let content_len = split_string[1];
     let content_len_split: Vec<&str> = content_len.split("\n").collect();
-    let content_len_int: usize = content_len_split[0].trim().parse().expect("Could not cast to integer");
+    let content_len_int: usize = content_len_split[0]
+        .trim()
+        .parse()
+        .expect("Could not cast to integer");
     let split_body: Vec<&str> = body.split("\n").collect();
     println!("{}", split_body[split_body.len() - 1]);
-    String::from(split_body[split_body.len() - 1]).split_at(content_len_int).0.to_string()
+    String::from(split_body[split_body.len() - 1])
+        .split_at(content_len_int)
+        .0
+        .to_string()
 }

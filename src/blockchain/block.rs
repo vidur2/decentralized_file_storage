@@ -1,13 +1,12 @@
-use datetime::Instant;
-use sha2::{ Sha256, Digest };
-use serde::{Serialize, Deserialize};
 use super::file_infor::{FileInformation, FileType};
-
+use datetime::Instant;
+use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 
 /// Struct to represent a single file on the blockchain
-/// 
+///
 /// # Fields
-/// 
+///
 /// * `index`- Where the block is in the blockchain
 /// * `previous_hash`- Sha256 representation of the data in the previous block
 ///     * Used for validation
@@ -18,15 +17,14 @@ pub struct Block {
     pub index: u128,
     pub previous_hash: String,
     timestamp: i128,
-    pub data: FileInformation
+    pub data: FileInformation,
 }
 
 impl Block {
-
     /// Constructor for single Block struct
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `index`- Index of the block
     /// * `previous hash`- Previous hash of the block (used for verification)
     /// * `data`- Actual data stored in the block as a FileInformation struct
@@ -35,7 +33,7 @@ impl Block {
             index,
             previous_hash,
             timestamp: Instant::now().seconds() as i128,
-            data
+            data,
         }
     }
 
@@ -47,24 +45,30 @@ impl Block {
         match data_as_str {
             Ok(data_uw) => {
                 hasher.update(data_uw);
-                return Some(format!("{:X}", hasher.finalize()))
-            },
+                return Some(format!("{:X}", hasher.finalize()));
+            }
             Err(err) => {
                 println!("{}", &err);
-                return None
+                return None;
             }
         }
     }
 
     /// Gets the genesis block (hardcoded information)
     pub fn genesis() -> Self {
-        let data = FileInformation::new(String::from("vidur2"), String::from("0.0.1"), String::from("https://github.com/vidur2"), b"test1", FileType::DataStore);
+        let data = FileInformation::new(
+            String::from("vidur2"),
+            String::from("0.0.1"),
+            String::from("https://github.com/vidur2"),
+            b"test1",
+            FileType::DataStore,
+        );
 
         return Self {
             index: 0,
             previous_hash: String::from(""),
             timestamp: Instant::now().seconds() as i128,
-            data
-        }
+            data,
+        };
     }
 }
