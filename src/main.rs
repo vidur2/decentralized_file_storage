@@ -92,6 +92,7 @@ fn init_node(blockchain: crate::blockchain::blockchain::SharedChain, sockets: Ar
             *reffed_bc = Blockchain::new();
         }
     }
+    println!("Done!");
 }
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));

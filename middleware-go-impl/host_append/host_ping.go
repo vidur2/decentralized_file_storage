@@ -9,7 +9,7 @@ import (
 )
 
 // Tests thte host for functional api routes
-func testHost(url string) bool {
+func TestHost(url string) bool {
 
 	// Builds the request
 	req := fasthttp.AcquireRequest()

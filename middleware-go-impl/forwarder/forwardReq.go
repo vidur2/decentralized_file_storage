@@ -14,7 +14,7 @@ Forwards a request from the reverse proxy to a linked node
 ctx: The context of the recieved request from the reverse proxy
 validated: A list of active nodes
 */
-func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
+func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 
 	// Original getting of variables
 	uri := string(ctx.Request.Body())
@@ -37,7 +37,7 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformat
 		ctx.Response.AppendBodyString("All nodes are inactive right now")
 	}
 
-	return validated
+	util.ValidatedChannel <- validated
 }
 
 // Helper function to act as a request client
