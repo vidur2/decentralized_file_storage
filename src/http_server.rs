@@ -117,11 +117,17 @@ fn _handle_ws_connection_client(ws_uw: SharedSocket, blockchain: SharedChain, so
     }
 }
 
+
 fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
+
+    // Initialization of reading var
     let mut buffer = [0u8; 1024];
     let mut response_content = String::new();
+
+    // Handles stream
     match stream.read(&mut buffer) {
         Ok(_) => {
+
             // Route to store a file on chain
             // Takes a FileInformation struct as input
             // `data` field should be a base64 url with mime type if it is frontend, otherwise it can be stored as any format, you just have to handle it
@@ -189,7 +195,15 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
             else if buffer.starts_with(b"GET /get_blocks HTTP/1.1") {
                 let blockchain = blockchain.lock().unwrap();
                 let blocks_as_str = serde_json::to_string(&blockchain.0).unwrap();
-                response_content.push_str(&blocks_as_str);
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                    blocks_as_str.len(),
+                    blocks_as_str
+                );
+
+                println!("{}", &response);
+                
+                response_content.push_str(&response);
             }
             stream.write(response_content.as_bytes()).unwrap();
         },
