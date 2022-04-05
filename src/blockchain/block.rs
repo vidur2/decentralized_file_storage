@@ -13,7 +13,7 @@ use super::file_infor::{FileInformation, FileType};
 ///     * Used for validation
 ///     * Contains the previous hash of the last block
 /// * `data`- The actual file stored in the block
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, std::cmp::PartialEq)]
 pub struct Block {
     pub index: u128,
     pub previous_hash: String,
