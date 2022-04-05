@@ -117,90 +117,6 @@ fn _handle_ws_connection_client(ws_uw: SharedSocket, blockchain: SharedChain, so
     }
 }
 
-
-// Deprecated
-// fn _handle_ws_connection_server(ws_uw: SharedSocket, blockchain: SharedChain, sockets: Arc<Mutex<Vec<WsOption>>>) {
-//     loop {
-//         let msg = ws_uw.lock().unwrap().read_message().unwrap();
-//         match msg {
-//             tungstenite::Message::Text(block_infor) => {
-//                 let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
-//                 let mut guarded = blockchain.lock().unwrap();
-//                 let ws_iter = sockets.lock().unwrap();
-//                 let reffed = serde_json::to_string_pretty(&guarded.0).unwrap();
-
-//                 match parsed {
-//                     MessageType::Chain(new_bc) => {
-//                         let ran = guarded.replace_chain(new_bc);
-                        
-//                         if ran {
-//                             for socket in  ws_iter.iter() {
-
-//                                 if let WsOption::Server(socket_uw) = socket {
-//                                     let mut socket_writable = socket_uw.lock().unwrap();
-//                                     socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-//                                 } else if let WsOption::Client(socket_uw)= socket {
-//                                     let mut socket_writable = socket_uw.lock().unwrap();
-//                                     socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-//                                 }
-//                             }
-//                         }
-//                     }
-//                     MessageType::Block(new_block) => {
-//                         let ran = guarded.add_unverified_block(new_block);
-
-//                         if ran {
-//                             for socket in  ws_iter.iter() {
-
-//                                 if let WsOption::Server(socket_uw) = socket {
-//                                     let mut socket_writable = socket_uw.lock().unwrap();
-//                                     socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-//                                 } else if let WsOption::Client(socket_uw) = socket {
-//                                     let mut socket_writable = socket_uw.lock().unwrap();
-//                                     socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
-//                                 }
-//                             }
-//                         }
-//                     },
-//                 }
-//             },
-//             tungstenite::Message::Binary(_) => todo!(),
-//             _ => {
-//                 println!("Invalid ws format")
-//             }
-//         }
-//     }
-// }
-
-// Deprecated
-// fn check_connection_type(stream: &mut TcpStream) -> (ConnectionType, Option<String>){
-//     let mut buffer = [0u8; 1024];
-//     match stream.read(&mut buffer) {
-//         Ok(_) => {
-//             let comparable = String::from_utf8(buffer.to_vec()).unwrap();
-//             if comparable.contains("Connection: Upgrade") {
-//                 let split_buffer: Vec<&str> = comparable.split("\n").collect();
-//                 let mut host = String::new();
-//                 for line in split_buffer {
-//                     if line.starts_with("Origin: ") {
-//                         let owned_line = String::from(line);
-//                         let split_line: Vec<&str> = owned_line.split(": ").collect();
-//                         let final_parse = split_line[1].replace("\r\n", "");
-//                         host.push_str(&final_parse);
-//                     }
-//                 }
-//                 return (ConnectionType::Webocket, Some(host));
-//             } else {
-//                 return (ConnectionType::Http, None);
-//             }
-//         }
-
-//         Err(_err) => {
-//             return( ConnectionType::Failuire, None);
-//         }
-//     };
-// }
-
 fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
     let mut buffer = [0u8; 1024];
     let mut response_content = String::new();
@@ -224,6 +140,7 @@ fn handle_http(stream: &mut TcpStream, blockchain: SharedChain, sockets: Arc<Mut
                     let mut socket_writable = socket.lock().unwrap();
                     socket_writable.write_message(tungstenite::Message::Text(reffed.clone())).expect("Could not send blockchain message");
                 }
+
                 let resp = "Successful";
                 let response = format!(
                     "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
