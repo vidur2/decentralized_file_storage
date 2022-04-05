@@ -15,9 +15,8 @@ var validated []util.AddressInformation
 func handler(ctx *fasthttp.RequestCtx) {
 
 	switch string(ctx.Path()) {
-
 	case "/get_peers":
-		peercheck.HandleGetPeers(ctx, validated)
+		peercheck.HandleGetPeersSocket(ctx, validated)
 		fmt.Println(validated)
 
 	case "/add_self_as_peer":
