@@ -6,6 +6,9 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// Gives requestser a slice of type AddressInformation containing all addresses in blockchain
+//
+// Note one must run a node to be part of this list
 func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 	hostname := string(ctx.Request.Body())
 	valid := checkIfValid(validated, hostname)
@@ -19,6 +22,7 @@ func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformatio
 	}
 }
 
+// Checks if requester is in list
 func checkIfValid(validated []util.AddressInformation, hostname string) bool {
 	inList := false
 
@@ -32,6 +36,7 @@ func checkIfValid(validated []util.AddressInformation, hostname string) bool {
 	return inList
 }
 
+// Serializes list as string to be returned through a response
 func serializeList(validated []util.AddressInformation, currentHostname string) string {
 	returnType := ""
 

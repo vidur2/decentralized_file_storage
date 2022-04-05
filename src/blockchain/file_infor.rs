@@ -3,14 +3,14 @@ use serde::{Deserialize, Serialize};
 use tree_magic_fork;
 
 /// Enum to represent how to serve the file
-#[derive(Serialize, Clone, Deserialize)]
+#[derive(Serialize, Clone, Deserialize, std::cmp::PartialEq)]
 pub enum FileType {
     Frontend,
     DataStore,
 }
 
 /// A file is represented here
-#[derive(Serialize, Clone, Deserialize)]
+#[derive(Serialize, Clone, Deserialize, std::cmp::PartialEq)]
 pub struct FileInformation {
     /// Public field of data is a base64 encoded url
     pub data: String,

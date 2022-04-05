@@ -111,8 +111,26 @@ impl Blockchain {
         return is_valid;
     }
 
+    fn check_if_superchain(&self, new_chain: &Vec<Block>) -> bool {
+        if new_chain.len() > self.0.len() {
+            let blockchain = &self.0;
+            for (idx, block) in blockchain.iter().enumerate() {
+                if &new_chain[idx] != block {
+                    return false;
+                }
+            }
+
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    /// Function used to replace a chain recieved over websocket
     pub fn replace_chain(&mut self, replacement_chain: Vec<Block>) -> bool {
-        if self.check_chain_validity(&replacement_chain) && self.0.len() < replacement_chain.len() {
+        if self.check_chain_validity(&replacement_chain)
+            && self.check_if_superchain(&replacement_chain)
+        {
             self.0 = replacement_chain;
             return true;
         } else {

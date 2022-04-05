@@ -9,6 +9,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// Adds ip addr to list if it passes the nessescary testing
 func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
 	var ipInformation util.AddressInformation
 	err := json.Unmarshal(ctx.Request.Body(), &ipInformation)

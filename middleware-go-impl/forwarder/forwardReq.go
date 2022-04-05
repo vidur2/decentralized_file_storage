@@ -1,13 +1,20 @@
-package clientside
+package forwarder
 
 import (
+	"fmt"
 	"math/rand"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
 )
 
-func HandleFileOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
+/*
+Forwards a request from the reverse proxy to a linked node
+
+ctx: The context of the recieved request from the reverse proxy
+validated: A list of active nodes
+*/
+func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
 
 	// Original getting of variables
 	uri := string(ctx.Request.Body())
@@ -33,10 +40,17 @@ func HandleFileOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInfor
 	return validated
 }
 
+// Helper function to act as a request client
 func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (error, fasthttp.Response) {
 
 	req := fasthttp.AcquireRequest()
-	req.Header.SetMethod(fasthttp.MethodPost)
+
+	if string(ctx.Path()) != "/get_blocks" {
+		req.Header.SetMethod(fasthttp.MethodPost)
+	} else {
+		req.Header.SetMethod(fasthttp.MethodGet)
+	}
+
 	req.AppendBodyString(uri)
 	req.SetRequestURI(ipAddr + string(ctx.Path()))
 
@@ -44,11 +58,15 @@ func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (
 
 	err := util.Client.Do(req, res)
 
+	if err != nil {
+		fmt.Println(err)
+	}
+
 	return err, *res
 }
 
+// Gets an active server at random
 func getAvailableServer(validated []util.AddressInformation) (string, util.AddressInformation, int) {
-
 	var chosenServer util.AddressInformation
 	var randomIndex int
 	var err string
