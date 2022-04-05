@@ -1,4 +1,4 @@
-package clientside
+package forwarder
 
 import (
 	"math/rand"
@@ -7,7 +7,13 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-func HandleFileOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
+/*
+Forwards a request from the reverse proxy to a linked node
+
+ctx: The context of the recieved request from the reverse proxy
+validated: A list of active nodes
+*/
+func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
 
 	// Original getting of variables
 	uri := string(ctx.Request.Body())
@@ -33,6 +39,7 @@ func HandleFileOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInfor
 	return validated
 }
 
+// Helper function to act as a request client
 func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (error, fasthttp.Response) {
 
 	req := fasthttp.AcquireRequest()
@@ -47,6 +54,7 @@ func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (
 	return err, *res
 }
 
+// Gets an active server at random
 func getAvailableServer(validated []util.AddressInformation) (string, util.AddressInformation, int) {
 
 	var chosenServer util.AddressInformation

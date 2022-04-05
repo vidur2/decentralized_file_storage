@@ -8,6 +8,7 @@ import (
 
 var Client *fasthttp.Client
 
+// Initialized fasthttp client
 func InitClient() {
 	readTimeout, _ := time.ParseDuration("500ms")
 	writeTimeout, _ := time.ParseDuration("500ms")

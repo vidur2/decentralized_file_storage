@@ -8,7 +8,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// Tests thte host for functional api routes
 func testHost(url string) bool {
+
+	// Builds the request
 	req := fasthttp.AcquireRequest()
 	req.Header.SetMethod(fasthttp.MethodPost)
 	req.SetRequestURI(url + "/store_information")
@@ -17,8 +20,10 @@ func testHost(url string) bool {
 	req.AppendBody(fileInfAsString)
 	res := fasthttp.AcquireResponse()
 
+	// Makes request
 	err := util.Client.Do(req, res)
 
+	// Parses response
 	if err != nil {
 		fmt.Println(err)
 		return false

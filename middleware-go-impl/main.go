@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	clientside "vidur2/middleware/client_side"
+	"vidur2/middleware/forwarder"
 	hostappend "vidur2/middleware/host_append"
 	peercheck "vidur2/middleware/peer_check"
 	"vidur2/middleware/util"
@@ -24,13 +24,13 @@ func handler(ctx *fasthttp.RequestCtx) {
 		validated = hostappend.HandleAddSelf(ctx, validated)
 
 	case "/get_information_by_url":
-		validated = clientside.HandleFileOperation(ctx, validated)
+		validated = forwarder.ForwardOperation(ctx, validated)
 
 	case "/store_information":
-		validated = clientside.HandleFileOperation(ctx, validated)
+		validated = forwarder.ForwardOperation(ctx, validated)
 
 	case "/get_blocks":
-		validated = clientside.HandleFileOperation(ctx, validated)
+		validated = forwarder.ForwardOperation(ctx, validated)
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
