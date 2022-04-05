@@ -1,18 +1,16 @@
-use std::sync::{Mutex, Arc};
+use std::sync::{Arc, Mutex};
 
 use serde::{Deserialize, Serialize};
 
 use super::block::Block;
 use super::file_infor::FileInformation;
 
-pub type SharedChain =  Arc<Mutex<Blockchain>>;
+pub type SharedChain = Arc<Mutex<Blockchain>>;
 
 #[derive(Deserialize, Serialize)]
 pub struct Blockchain(pub Vec<Block>);
 
-
 impl Blockchain {
-
     /// Constructor for blockchain
     /// * Takes no arguments
     /// * Default block is always the original genesis block
@@ -23,18 +21,22 @@ impl Blockchain {
     }
 
     /// Adds block to blockchain
-    /// 
+    ///
     /// # Arguments
-    /// 
+    ///
     /// * `file`: A struct of type FileInformation that contains the data in the file being addded
-    /// 
+    ///
     /// # Returns
     /// A boolean indicating whether adding the block was succesful
-    /// 
+    ///
     pub fn add_block(&mut self, file: FileInformation) -> bool {
         let next_index = self.0.len();
         let prev_block = &self.0[next_index - 1];
-        let block = Block::new(next_index as u128, prev_block.hash_block().unwrap(), file.clone());
+        let block = Block::new(
+            next_index as u128,
+            prev_block.hash_block().unwrap(),
+            file.clone(),
+        );
         if self.check_block_validity(&block, &prev_block) && !self.check_if_exists(file) {
             self.0.push(block);
             return true;
@@ -44,10 +46,10 @@ impl Blockchain {
     }
 
     /// Gets the latest iteration of a Block containing the FileInformation for a specified uri
-    /// 
+    ///
     /// # Arguments
     /// * `uri`: The uri/url that is used to search for the FilInformation
-    /// 
+    ///
     /// # Returns
     /// An optional immutable reference to a Block
     /// * If the uri is in the block chain, the option will be non-none
@@ -62,10 +64,10 @@ impl Blockchain {
     }
 
     /// Method used to add verify and add a block pushed over a websocket
-    /// 
+    ///
     /// # Arguments
     /// * `new_block`: The block being added
-    /// 
+    ///
     /// # Returns
     /// Boolean status on whether block is valid
     pub fn add_unverified_block(&mut self, new_block: Block) -> bool {
@@ -81,18 +83,18 @@ impl Blockchain {
     /// * Used to verify adding of files over websocket
     /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
-
-        if new_block.index - 1 != previous_block.index || previous_block.hash_block().unwrap() != new_block.previous_hash {
-            return false
+        if new_block.index - 1 != previous_block.index
+            || previous_block.hash_block().unwrap() != new_block.previous_hash
+        {
+            return false;
         } else {
-            return true
+            return true;
         }
     }
 
     /// Checks whether an entered chain is valid
     /// * Used to verify blockchain recieved over websocket
     fn check_chain_validity(&self, new_chain: &Vec<Block>) -> bool {
-
         // Return variable
         let mut is_valid = true;
 
@@ -105,15 +107,15 @@ impl Blockchain {
                 is_valid = false;
             }
         }
-    
-        return is_valid
+
+        return is_valid;
     }
 
     pub fn replace_chain(&mut self, replacement_chain: Vec<Block>) -> bool {
         if self.check_chain_validity(&replacement_chain) && self.0.len() < replacement_chain.len() {
             self.0 = replacement_chain;
             return true;
-        }  else {
+        } else {
             return false;
         }
     }
@@ -131,17 +133,15 @@ impl Blockchain {
                         } else {
                             return false;
                         }
-                    },
+                    }
                     Err(_) => {
                         return true;
-                    },
+                    }
                 }
-            },
+            }
             Err(_) => {
                 return true;
-            },
+            }
         }
-
     }
-
 }
