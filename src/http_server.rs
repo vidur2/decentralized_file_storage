@@ -206,7 +206,6 @@ fn handle_http(
                 );
 
                 response_content.push_str(&response);
-
             } else if buffer.starts_with(b"GET /get_peers HTTP/1.1") {
                 let sockets = sockets.lock().unwrap();
                 let mut peers = Vec::new();
