@@ -27,7 +27,7 @@ const MIDDLEWARE_ADDR_ADD_SELF: &str = "http://localhost:8080/add_self_as_peer";
 // }
 
 
-// Depreated
+// Deprecated
 // fn get_addr() -> IpInformation {
 //     let mut socket_addr = String::new();
 //     let mut http_addr = String::new();
@@ -95,7 +95,7 @@ fn init_node(
             });
         }
         
-    } else {
+    } else if &resp == "true" {
         *reffed_bc = Blockchain::new();
     }
 }
@@ -109,7 +109,6 @@ fn main() {
         http_server::init_http(server_bc, server_sockets);
     });
 
-    // Comment in  when go server has been tested
     init_node(blockchain, sockets);
 
     http_server_handle
