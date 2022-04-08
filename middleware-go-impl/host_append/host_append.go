@@ -1,32 +1,25 @@
 package hostappend
 
 import (
-	"encoding/json"
 	"fmt"
 	"strconv"
-	"vidur2/middleware/util"
 
+	realip "github.com/Ferluci/fast-realip"
 	"github.com/valyala/fasthttp"
 )
 
 // Adds ip addr to list if it passes the nessescary testing
-func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
-	var ipInformation util.AddressInformation
-	err := json.Unmarshal(ctx.Request.Body(), &ipInformation)
+func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) []string {
+	clientIp := realip.FromRequest(ctx)
+	fmt.Println(clientIp)
+	valid := testHost("http://" + clientIp + ":8002")
 
-	if err == nil {
-		fmt.Println(ipInformation)
-		valid := testHost(ipInformation.HttpAddr)
-
-		if valid {
-			validated = append(validated, ipInformation)
-		}
-
-		ctx.SetStatusCode(fasthttp.StatusOK)
-		ctx.Response.AppendBodyString(strconv.FormatBool(valid))
-
-		return validated
-	} else {
-		return nil
+	if valid {
+		validated = append(validated, clientIp+":8002")
 	}
+
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.Response.AppendBodyString(strconv.FormatBool(valid))
+
+	return validated
 }

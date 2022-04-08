@@ -4,20 +4,19 @@ import (
 	"fmt"
 	"vidur2/middleware/forwarder"
 	hostappend "vidur2/middleware/host_append"
-	peercheck "vidur2/middleware/peer_check"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
 )
 
-var validated []util.AddressInformation
+var validated []string
 
 func handler(ctx *fasthttp.RequestCtx) {
 
 	switch string(ctx.Path()) {
 
 	case "/get_peers":
-		peercheck.HandleGetPeers(ctx, validated)
+		validated = forwarder.ForwardOperation(ctx, validated)
 		fmt.Println(validated)
 
 	case "/add_self_as_peer":
@@ -25,12 +24,15 @@ func handler(ctx *fasthttp.RequestCtx) {
 
 	case "/get_information_by_url":
 		validated = forwarder.ForwardOperation(ctx, validated)
+		fmt.Println(validated)
 
 	case "/store_information":
 		validated = forwarder.ForwardOperation(ctx, validated)
+		fmt.Println(validated)
 
 	case "/get_blocks":
 		validated = forwarder.ForwardOperation(ctx, validated)
+		fmt.Println(validated)
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)

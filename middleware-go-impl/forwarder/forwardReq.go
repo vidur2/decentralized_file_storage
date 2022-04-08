@@ -14,18 +14,19 @@ Forwards a request from the reverse proxy to a linked node
 ctx: The context of the recieved request from the reverse proxy
 validated: A list of active nodes
 */
-func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
+func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
 
 	// Original getting of variables
 	uri := string(ctx.Request.Body())
 	serverErr, ipAddr, idx := getAvailableServer(validated)
-	err, res := _handleFileOperation(ctx, ipAddr.HttpAddr, uri)
+	fmt.Println(ipAddr)
+	err, res := _handleFileOperation(ctx, "http://"+ipAddr, uri)
 
 	// Keeps going until either an active server is found or no servers remain
 	for err != nil && serverErr == "" {
 		validated = util.Remove(validated, idx)
 		serverErr, ipAddr, idx = getAvailableServer(validated)
-		err, res = _handleFileOperation(ctx, ipAddr.HttpAddr, uri)
+		err, res = _handleFileOperation(ctx, "http://"+ipAddr, uri)
 	}
 
 	// If there is no server err return content
@@ -42,21 +43,22 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformat
 
 // Helper function to act as a request client
 func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (error, fasthttp.Response) {
-
 	req := fasthttp.AcquireRequest()
 
-	if string(ctx.Path()) != "/get_blocks" {
+	if string(ctx.Path()) != "/get_blocks" && string(ctx.Path()) != "/get_peers" {
 		req.Header.SetMethod(fasthttp.MethodPost)
+		req.AppendBodyString(uri)
 	} else {
 		req.Header.SetMethod(fasthttp.MethodGet)
 	}
 
-	req.AppendBodyString(uri)
 	req.SetRequestURI(ipAddr + string(ctx.Path()))
 
 	res := fasthttp.AcquireResponse()
 
 	err := util.Client.Do(req, res)
+
+	fmt.Println(string(res.Body()))
 
 	if err != nil {
 		fmt.Println(err)
@@ -66,8 +68,8 @@ func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (
 }
 
 // Gets an active server at random
-func getAvailableServer(validated []util.AddressInformation) (string, util.AddressInformation, int) {
-	var chosenServer util.AddressInformation
+func getAvailableServer(validated []string) (string, string, int) {
+	var chosenServer string
 	var randomIndex int
 	var err string
 	err = ""
