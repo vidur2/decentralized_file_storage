@@ -48,59 +48,52 @@ fn init_node(
     blockchain: crate::blockchain::blockchain::SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
-    let client = reqwest::blocking::Client::new();
+    // let client = reqwest::blocking::Client::new();
 
-    let addr = get_addr();
-    let req_body_infor = serde_json::to_string(&addr).unwrap();
+    // let addr = get_addr();
+    // let req_body_infor = serde_json::to_string(&addr).unwrap();
 
-    let resp = client
-        .post(MIDDLEWARE_ADDR_POST)
-        .body(req_body_infor)
-        .send()
+    let resp_peers = reqwest::blocking::get(MIDDLEWARE_ADDR_GET)
         .unwrap()
         .text()
         .unwrap();
 
-    if &resp == "true" {
-        drop(resp);
-        let resp = client
-            .post(MIDDLEWARE_ADDR_GET)
-            .body(addr.socket_addr)
-            .send()
+    let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_POST)
+        .unwrap()
+        .text()
+        .unwrap();
+
+    println!("{}", resp);
+
+    let mut reffed_bc = blockchain.lock().unwrap();
+
+    if &resp == "true" && &resp_peers != "All nodes are inactive right now"{
+        let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
             .unwrap()
             .text()
             .unwrap();
+            
+        let blockchain_vec: Vec<Block> = serde_json::from_str(&blockchain_str).unwrap();
+        *reffed_bc = Blockchain(blockchain_vec);
 
-        let mut reffed_bc = blockchain.lock().unwrap();
+        drop(blockchain_str);
+        drop(reffed_bc);
 
-        if resp != "" {
-            let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
-                .unwrap()
-                .text()
-                .unwrap();
+        let parsed_response: Vec<std::net::SocketAddr> = serde_json::from_str(&resp_peers).unwrap();
 
-            let blockchain_vec: Vec<Block> = serde_json::from_str(&blockchain_str).unwrap();
-            drop(blockchain_str);
+        for host in parsed_response.iter() {
+            let blockchain = Arc::clone(&blockchain);
+            let ws = Arc::new(Mutex::new(tungstenite::client::connect(host.to_string()).unwrap().0));
+            let sockets = Arc::clone(&sockets);
+            sockets.lock().unwrap().push(Arc::clone(&ws));
 
-            *reffed_bc = Blockchain(blockchain_vec);
-
-            drop(reffed_bc);
-
-            let parsed_response: Vec<&str> = resp.split(",").collect();
-
-            for host in parsed_response.iter() {
-                let blockchain = Arc::clone(&blockchain);
-                let ws = Arc::new(Mutex::new(tungstenite::client::connect(*host).unwrap().0));
-                let sockets = Arc::clone(&sockets);
-                sockets.lock().unwrap().push(Arc::clone(&ws));
-
-                thread::spawn(move || {
-                    handle_socket_connection(ws, blockchain, sockets);
-                });
-            }
-        } else {
-            *reffed_bc = Blockchain::new();
+            thread::spawn(move || {
+                handle_socket_connection(ws, blockchain, sockets);
+            });
         }
+        
+    } else {
+        *reffed_bc = Blockchain::new();
     }
 }
 fn main() {
