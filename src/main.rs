@@ -8,7 +8,6 @@ use blockchain::{
     blockchain::{Blockchain, SharedChain},
 };
 use http_server::SharedSocket;
-use serde::Serialize;
 
 use crate::http_server::handle_socket_connection;
 
@@ -16,33 +15,37 @@ mod blockchain;
 mod http_server;
 
 const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
-const MIDDLEWARE_ADDR_GET: &str = "http://localhost:8080/get_peers";
-const MIDDLEWARE_ADDR_POST: &str = "http://localhost:8080/add_self_as_peer";
+const MIDDLEWARE_ADDR_GET_PEERS: &str = "http://localhost:8080/get_peers";
+const MIDDLEWARE_ADDR_ADD_SELF: &str = "http://localhost:8080/add_self_as_peer";
 
-#[derive(Serialize)]
-struct IpInformation {
-    socket_addr: String,
-    http_addr: String,
-}
 
-fn get_addr() -> IpInformation {
-    let mut socket_addr = String::new();
-    let mut http_addr = String::new();
+// Depreacted
+// #[derive(Serialize)]
+// struct IpInformation {
+//     socket_addr: String,
+//     http_addr: String,
+// }
 
-    println!("Enter the address for your node's socket endpoint (ws://)): ");
-    std::io::stdin().read_line(&mut socket_addr).unwrap();
 
-    println!("Enter the address of your node's http endpoint (http://): ");
-    std::io::stdin().read_line(&mut http_addr).unwrap();
+// Depreated
+// fn get_addr() -> IpInformation {
+//     let mut socket_addr = String::new();
+//     let mut http_addr = String::new();
 
-    let split_socket_addr: Vec<&str> = socket_addr.split("\n").collect();
-    let split_http_addr: Vec<&str> = http_addr.split("\n").collect();
+//     println!("Enter the address for your node's socket endpoint (ws://)): ");
+//     std::io::stdin().read_line(&mut socket_addr).unwrap();
 
-    return IpInformation {
-        socket_addr: String::from(split_socket_addr[0]),
-        http_addr: String::from(split_http_addr[0]),
-    };
-}
+//     println!("Enter the address of your node's http endpoint (http://): ");
+//     std::io::stdin().read_line(&mut http_addr).unwrap();
+
+//     let split_socket_addr: Vec<&str> = socket_addr.split("\n").collect();
+//     let split_http_addr: Vec<&str> = http_addr.split("\n").collect();
+
+//     return IpInformation {
+//         socket_addr: String::from(split_socket_addr[0]),
+//         http_addr: String::from(split_http_addr[0]),
+//     };
+// }
 
 fn init_node(
     blockchain: crate::blockchain::blockchain::SharedChain,
@@ -53,12 +56,12 @@ fn init_node(
     // let addr = get_addr();
     // let req_body_infor = serde_json::to_string(&addr).unwrap();
 
-    let resp_peers = reqwest::blocking::get(MIDDLEWARE_ADDR_GET)
+    let resp_peers = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_PEERS)
         .unwrap()
         .text()
         .unwrap();
 
-    let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_POST)
+    let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_ADD_SELF)
         .unwrap()
         .text()
         .unwrap();
@@ -72,7 +75,7 @@ fn init_node(
             .unwrap()
             .text()
             .unwrap();
-            
+
         let blockchain_vec: Vec<Block> = serde_json::from_str(&blockchain_str).unwrap();
         *reffed_bc = Blockchain(blockchain_vec);
 
