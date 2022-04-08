@@ -205,9 +205,29 @@ fn handle_http(
                     blocks_as_str
                 );
 
-                println!("{}", &response);
-
                 response_content.push_str(&response);
+            } else if buffer.starts_with(b"GET /get_peers HTTP/1.1") {
+                let sockets = sockets.lock().unwrap();
+                let mut peers = Vec::new();
+                for (idx, socket) in sockets.iter().enumerate() {
+                    let socket_guard = socket.lock().unwrap();
+                    let stream = socket_guard.get_ref();
+                    if let MaybeTlsStream::Plain(stream_uw) = stream {
+                        if idx == 0 {
+                            peers.push(stream_uw.local_addr().unwrap());
+                        }
+                        peers.push(stream_uw.peer_addr().unwrap());
+                    }
+                }
+
+                let addr_ser = serde_json::to_string(&peers).unwrap();
+                let response = format!(
+                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                    addr_ser.len(),
+                    addr_ser
+                );
+
+                response_content.push_str(&response)
             }
             stream.write(response_content.as_bytes()).unwrap();
         }

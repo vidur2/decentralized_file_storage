@@ -2,7 +2,6 @@ package hostappend
 
 import (
 	"encoding/json"
-	"fmt"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
@@ -25,7 +24,6 @@ func TestHost(url string) bool {
 
 	// Parses response
 	if err != nil {
-		fmt.Println(err)
 		return false
 	} else {
 		req.SetRequestURI(url + "/get_information_by_url")

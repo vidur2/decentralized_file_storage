@@ -10,8 +10,8 @@ var Client *fasthttp.Client
 
 // Initialized fasthttp client
 func InitClient() {
-	readTimeout, _ := time.ParseDuration("500ms")
-	writeTimeout, _ := time.ParseDuration("500ms")
+	readTimeout, _ := time.ParseDuration("1000ms")
+	writeTimeout, _ := time.ParseDuration("1000ms")
 	maxIdleConnDuration, _ := time.ParseDuration("1h")
 
 	Client = &fasthttp.Client{

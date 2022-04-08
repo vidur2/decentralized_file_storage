@@ -9,11 +9,12 @@ import (
 )
 
 func HandleNewWs(conn *fastws.Conn) {
+	util.SocketsNonNil <- true
 	sockets := <-util.SocketsChannel
 	sockets = append(sockets, conn)
 	util.SocketsChannel <- sockets
 	var messageInfor MessageType
-	var validated []util.AddressInformation
+	var validated []string
 
 	for {
 		_, msg, err := conn.ReadMessage(nil)
@@ -23,13 +24,13 @@ func HandleNewWs(conn *fastws.Conn) {
 
 			if err == nil {
 				if messageInfor.Path == "/add_gateway" {
-					conn, err := fastws.Dial(messageInfor.IpInformation.SocketAddr)
+					conn, err := fastws.Dial(messageInfor.IpInformation)
 
 					if err == nil {
 						go HandleNewWs(conn)
 					}
 				} else if messageInfor.Path == "/add_node" {
-					valid := hostappend.TestHost(messageInfor.IpInformation.HttpAddr)
+					valid := hostappend.TestHost(messageInfor.IpInformation)
 
 					if valid {
 						validated = <-util.ValidatedChannel
