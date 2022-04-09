@@ -3,6 +3,7 @@ package forwarder
 import (
 	"fmt"
 	"math/rand"
+	"strings"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
@@ -50,6 +51,9 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
 func serializeValidated(validated []string) string {
 	retString := "["
 	for idx, server := range validated {
+		if util.Port == ":8002" {
+			server = strings.Replace(server, util.Port, ":8003", 1)
+		}
 		if idx != len(validated)-1 {
 			retString += server + ","
 		} else {

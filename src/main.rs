@@ -60,7 +60,9 @@ fn init_node(
         for host in parsed_response.iter() {
             let blockchain = Arc::clone(&blockchain);
             let ws = Arc::new(Mutex::new(
-                tungstenite::client::connect(format!("ws://{}", host)).unwrap().0
+                tungstenite::client::connect(format!("ws://{}", host))
+                    .unwrap()
+                    .0,
             ));
             let sockets = Arc::clone(&sockets);
             sockets.lock().unwrap().push(Arc::clone(&ws));

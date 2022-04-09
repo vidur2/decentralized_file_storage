@@ -208,11 +208,14 @@ fn handle_http(
                 response_content.push_str(&response);
             } else if buffer.starts_with(b"GET /get_peers HTTP/1.1") {
                 let sockets = sockets.lock().unwrap();
-                let mut peers = vec![my_public_ip::resolve().unwrap().to_string()];
-                for socket in sockets.iter() {
+                let mut peers = Vec::new();
+                for (idx, socket) in sockets.iter().enumerate() {
                     let socket_guard = socket.lock().unwrap();
                     let stream = socket_guard.get_ref();
                     if let MaybeTlsStream::Plain(stream_uw) = stream {
+                        if idx == 0 {
+                            peers.push(stream_uw.peer_addr().unwrap().to_string());
+                        }
                         peers.push(stream_uw.peer_addr().unwrap().to_string());
                     }
                 }
