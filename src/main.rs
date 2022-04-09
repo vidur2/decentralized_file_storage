@@ -55,12 +55,12 @@ fn init_node(
         drop(blockchain_str);
         drop(reffed_bc);
 
-        let parsed_response: Vec<std::net::SocketAddr> = serde_json::from_str(&resp_peers).unwrap();
+        let parsed_response: Vec<&str> = serde_json::from_str(&resp_peers).unwrap();
 
         for host in parsed_response.iter() {
             let blockchain = Arc::clone(&blockchain);
             let ws = Arc::new(Mutex::new(
-                tungstenite::client::connect(host.to_string()).unwrap().0,
+                tungstenite::client::connect(format!("ws://{}", host)).unwrap().0
             ));
             let sockets = Arc::clone(&sockets);
             sockets.lock().unwrap().push(Arc::clone(&ws));
