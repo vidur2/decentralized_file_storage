@@ -9,8 +9,16 @@ import (
 )
 
 func HandleNewWs(conn *fastws.Conn) {
-	util.SocketsNonNil <- true
-	sockets := <-util.SocketsChannel
+	nonblocking := <-util.SocketsNonNil
+	var sockets []*fastws.Conn
+
+	if !nonblocking {
+		util.SocketsNonNil <- true
+		sockets = make([]*fastws.Conn, 1)
+	} else {
+		sockets = <-util.SocketsChannel
+	}
+	broadcastAddGateway(sockets, *conn)
 	sockets = append(sockets, conn)
 	util.SocketsChannel <- sockets
 	var messageInfor MessageType
@@ -39,6 +47,19 @@ func HandleNewWs(conn *fastws.Conn) {
 					}
 				}
 			}
+		}
+	}
+}
+
+func broadcastAddGateway(sockets []*fastws.Conn, newConn fastws.Conn) {
+	for _, socket := range sockets {
+		msg, err := json.Marshal(MessageType{
+			Path:          "/add_node",
+			IpInformation: newConn.RemoteAddr().String(),
+		})
+
+		if err == nil {
+			socket.Write(msg)
 		}
 	}
 }

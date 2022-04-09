@@ -10,12 +10,24 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// Represents a websocket message
+//
+// Used for de/serialization
+//
+// Fields
+//  * Path: used to identify which handler to use
+//    - "/add_node"
+//    - "/add_gateway"
 type MessageType struct {
 	Path          string
 	IpInformation string
 }
 
 // Adds ip addr to list if it passes the nessescary testing
+//
+// Params:
+//  * ctx: fasthttp context object
+//  * validated: slice containing all active nodes
 func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) {
 	ipInformation := realip.FromRequest(ctx) + ":8002"
 
@@ -31,6 +43,7 @@ func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) {
 	util.ValidatedChannel <- validated
 }
 
+// Broadcasts the adding of a node over ip
 func handleAdd(ipInformation string) {
 	nonblocking := <-util.SocketsNonNil
 
