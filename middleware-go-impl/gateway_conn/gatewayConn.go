@@ -54,7 +54,7 @@ func HandleNewWs(conn *fastws.Conn) {
 func broadcastAddGateway(sockets []*fastws.Conn, newConn fastws.Conn) {
 	for _, socket := range sockets {
 		msg, err := json.Marshal(MessageType{
-			Path:          "/add_node",
+			Path:          "/add_gateway",
 			IpInformation: newConn.RemoteAddr().String(),
 		})
 
