@@ -32,13 +32,32 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
 	// If there is no server err return content
 	if serverErr == "" {
 		ctx.SetStatusCode(fasthttp.StatusOK)
-		ctx.Response.AppendBodyString(string(res.Body()))
+		body := string(res.Body())
+
+		if body == "[]" && string(ctx.Path()) == "/get_peers" {
+			ctx.Response.AppendBodyString(serializeValidated(validated))
+		} else {
+			ctx.Response.AppendBodyString(body)
+		}
 	} else {
 		ctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
 		ctx.Response.AppendBodyString("All nodes are inactive right now")
 	}
 
 	return validated
+}
+
+func serializeValidated(validated []string) string {
+	retString := "["
+	for idx, server := range validated {
+		if idx != len(validated)-1 {
+			retString += server + ","
+		} else {
+			retString += server + "]"
+		}
+	}
+
+	return retString
 }
 
 // Helper function to act as a request client
