@@ -18,33 +18,6 @@ const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
 const MIDDLEWARE_ADDR_GET_PEERS: &str = "http://localhost:8080/get_peers";
 const MIDDLEWARE_ADDR_ADD_SELF: &str = "http://localhost:8080/add_self_as_peer";
 
-// Depreacted
-// #[derive(Serialize)]
-// struct IpInformation {
-//     socket_addr: String,
-//     http_addr: String,
-// }
-
-// Deprecated
-// fn get_addr() -> IpInformation {
-//     let mut socket_addr = String::new();
-//     let mut http_addr = String::new();
-
-//     println!("Enter the address for your node's socket endpoint (ws://)): ");
-//     std::io::stdin().read_line(&mut socket_addr).unwrap();
-
-//     println!("Enter the address of your node's http endpoint (http://): ");
-//     std::io::stdin().read_line(&mut http_addr).unwrap();
-
-//     let split_socket_addr: Vec<&str> = socket_addr.split("\n").collect();
-//     let split_http_addr: Vec<&str> = http_addr.split("\n").collect();
-
-//     return IpInformation {
-//         socket_addr: String::from(split_socket_addr[0]),
-//         http_addr: String::from(split_http_addr[0]),
-//     };
-// }
-
 /// Initialization code for the node
 /// * Connects to middleware
 /// * Connects to all other nodes
@@ -56,11 +29,6 @@ fn init_node(
     blockchain: crate::blockchain::blockchain::SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
-    // let client = reqwest::blocking::Client::new();
-
-    // let addr = get_addr();
-    // let req_body_infor = serde_json::to_string(&addr).unwrap();
-
     let resp_peers = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_PEERS)
         .unwrap()
         .text()
