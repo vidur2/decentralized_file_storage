@@ -17,6 +17,12 @@ enum MessageType {
     Block(Block),
 }
 
+#[derive(Deserialize)]
+struct FileMessage {
+    data: FileInformation,
+    timestamp: i128
+}
+
 pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
     let http_listener = TcpListener::bind("127.0.0.1:8002").unwrap();
     let ws_listener = TcpListener::bind("127.0.0.1:8003").unwrap();
@@ -140,9 +146,10 @@ fn handle_http(
             if buffer.starts_with(b"POST /store_information HTTP/1.1") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
-                let file_infor_in_body: FileInformation = serde_json::from_str(&body).unwrap();
+                println!("{}", body);
+                let file_infor_in_body: FileMessage = serde_json::from_str(&body).unwrap();
                 let mut guard = blockchain.lock().unwrap();
-                guard.add_block(file_infor_in_body);
+                guard.add_block(file_infor_in_body.data, file_infor_in_body.timestamp);
 
                 let ws_iter = sockets.lock().unwrap();
                 let reffed = serde_json::to_string_pretty(&guard.0).unwrap();
@@ -223,7 +230,7 @@ fn parse_body(body: String) -> String {
         .parse()
         .expect("Could not cast to integer");
     let split_body: Vec<&str> = body.split("\n").collect();
-    println!("{}", split_body[split_body.len() - 1]);
+
     String::from(split_body[split_body.len() - 1])
         .split_at(content_len_int)
         .0

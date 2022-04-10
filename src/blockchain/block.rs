@@ -28,11 +28,11 @@ impl Block {
     /// * `index`- Index of the block
     /// * `previous hash`- Previous hash of the block (used for verification)
     /// * `data`- Actual data stored in the block as a FileInformation struct
-    pub fn new(index: u128, previous_hash: String, data: FileInformation) -> Self {
+    pub fn new(index: u128, previous_hash: String, data: FileInformation, timestamp: i128) -> Self {
         Self {
             index,
             previous_hash,
-            timestamp: Instant::now().seconds() as i128,
+            timestamp,
             data,
         }
     }

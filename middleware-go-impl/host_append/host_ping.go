@@ -2,6 +2,7 @@ package hostappend
 
 import (
 	"encoding/json"
+	"vidur2/middleware/forwarder"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
@@ -16,7 +17,7 @@ func testHost(url string) bool {
 	req.SetRequestURI(url + "/store_information")
 	checkedFileInf := generateRandomFileInformation()
 	fileInfAsString, _ := json.Marshal(checkedFileInf)
-	req.AppendBody(fileInfAsString)
+	req.AppendBody(forwarder.HandleAddFile(fileInfAsString))
 	res := fasthttp.AcquireResponse()
 
 	// Makes request
