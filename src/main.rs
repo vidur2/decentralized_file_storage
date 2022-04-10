@@ -39,9 +39,12 @@ fn init_node(
         .text()
         .unwrap();
 
+    println!("{}", resp);
+
+
     let mut reffed_bc = blockchain.lock().unwrap();
 
-    if &resp == "true" && &resp_peers != "All nodes are inactive right now" {
+    if &resp == "true" && &resp_peers != "[" {
         let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
             .unwrap()
             .text()
@@ -72,6 +75,8 @@ fn init_node(
     } else if &resp == "true" {
         *reffed_bc = Blockchain::new();
     }
+
+    println!("Done!")
 }
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));
