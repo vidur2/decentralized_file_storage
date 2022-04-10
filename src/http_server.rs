@@ -146,7 +146,6 @@ fn handle_http(
             if buffer.starts_with(b"POST /store_information HTTP/1.1") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
-                println!("{}", body);
                 let file_infor_in_body: FileMessage = serde_json::from_str(&body).unwrap();
                 let mut guard = blockchain.lock().unwrap();
                 guard.add_block(file_infor_in_body.data, file_infor_in_body.timestamp);

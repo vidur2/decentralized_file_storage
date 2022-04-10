@@ -1,7 +1,6 @@
 package hostappend
 
 import (
-	"fmt"
 	"strconv"
 	"vidur2/middleware/util"
 
@@ -13,7 +12,6 @@ import (
 func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) {
 
 	clientIp := realip.FromRequest(ctx)
-	fmt.Println(clientIp)
 
 	valid := testHost("http://" + clientIp + ":8002")
 

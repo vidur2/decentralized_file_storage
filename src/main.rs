@@ -39,8 +39,6 @@ fn init_node(
         .text()
         .unwrap();
 
-    println!("{}", resp);
-
     let mut reffed_bc = blockchain.lock().unwrap();
 
     if &resp == "true" && &resp_peers != "[" {

@@ -44,14 +44,13 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 	}
 
 	serverErr, ipAddr, idx := getAvailableServer(validated)
-	fmt.Println(ipAddr)
-	err, res := _handleFileOperation(ctx, "http://"+ipAddr, clientReqBody)
+	res, err := _handleFileOperation(ctx, "http://"+ipAddr, clientReqBody)
 
 	// Keeps going until either an active server is found or no servers remain
 	for err != nil && serverErr == "" {
 		validated = util.Remove(validated, idx)
 		serverErr, ipAddr, idx = getAvailableServer(validated)
-		err, res = _handleFileOperation(ctx, "http://"+ipAddr, clientReqBody)
+		res, err = _handleFileOperation(ctx, "http://"+ipAddr, clientReqBody)
 	}
 
 	// If there is no server err return content
@@ -118,7 +117,7 @@ func serializeValidated(validated []string) string {
 }
 
 // Helper function to act as a request client
-func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, clientReqBody string) (error, fasthttp.Response) {
+func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, clientReqBody string) (fasthttp.Response, error) {
 	req := fasthttp.AcquireRequest()
 
 	if string(ctx.Path()) != "/get_blocks" {
@@ -134,13 +133,11 @@ func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, clientReqBody
 
 	err := util.Client.Do(req, res)
 
-	fmt.Println(string(res.Body()))
-
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return err, *res
+	return *res, err
 }
 
 // Gets an active server at random
