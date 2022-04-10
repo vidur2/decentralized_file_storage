@@ -213,10 +213,12 @@ fn handle_http(
 
                 response_content.push_str(&response);
             }
-
-            // Returns hash given timestamp 
+            // Returns hash given timestamp
             else if buffer.starts_with(b"POST /get_hash HTTP/1.1") {
-                let timestamp: i128 = parse_body(String::from_utf8(buffer.to_vec()).unwrap()).trim().parse().unwrap();
+                let timestamp: i128 = parse_body(String::from_utf8(buffer.to_vec()).unwrap())
+                    .trim()
+                    .parse()
+                    .unwrap();
                 let blockchain = blockchain.lock().unwrap();
                 let mut hash: &str = "No matching hash";
 

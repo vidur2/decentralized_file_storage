@@ -18,7 +18,7 @@ pub struct Block {
     pub previous_hash: String,
     pub timestamp: i128,
     pub data: FileInformation,
-    pub hash: String
+    pub hash: String,
 }
 
 impl Block {
@@ -35,7 +35,7 @@ impl Block {
             previous_hash: previous_hash.clone(),
             timestamp,
             data: data.clone(),
-            hash: hash_block(index, previous_hash, timestamp.try_into().unwrap(), data).unwrap()
+            hash: hash_block(index, previous_hash, timestamp.try_into().unwrap(), data).unwrap(),
         }
     }
 
@@ -56,13 +56,18 @@ impl Block {
             previous_hash: String::from("0"),
             timestamp,
             data: data.clone(),
-            hash: hash_block(0, String::from("0"), timestamp as u128, data).unwrap()
+            hash: hash_block(0, String::from("0"), timestamp as u128, data).unwrap(),
         };
     }
 }
 
 /// Function to hash block. Used for verification
-pub fn hash_block(index: u128, previous_hash: String, timestamp: u128, data: FileInformation) -> Option<String> {
+pub fn hash_block(
+    index: u128,
+    previous_hash: String,
+    timestamp: u128,
+    data: FileInformation,
+) -> Option<String> {
     let mut hasher = Sha256::new();
     let data_as_str = serde_json::to_string(&data);
 
