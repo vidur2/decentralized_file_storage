@@ -4,11 +4,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strconv"
 	"strings"
 	"time"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type FileInformation struct {
@@ -83,6 +85,14 @@ func TransformFile(body []byte) []byte {
 		Timestamp: time.Now().Unix(),
 		Data:      parsed,
 	}
+
+	hashed, err := bcrypt.GenerateFromPassword([]byte(fullBody.Data.Creator+strconv.Itoa(int(fullBody.Timestamp))), 10)
+
+	if err != nil {
+		return nil
+	}
+
+	fullBody.Data.Creator = string(hashed)
 
 	newBody, err := json.Marshal(fullBody)
 
