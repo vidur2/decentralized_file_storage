@@ -16,22 +16,24 @@ func handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
 
 	case "/get_peers":
-		forwarder.HandleGetPeers(ctx, validated)
+		go forwarder.HandleGetPeers(ctx, validated)
+		validated = <-util.ValidatedChannel
 
 	case "/add_self_as_peer":
-		validated = hostappend.HandleAddSelf(ctx, validated)
+		go hostappend.HandleAddSelf(ctx, validated)
+		validated = <-util.ValidatedChannel
 
 	case "/get_information_by_url":
-		validated = forwarder.ForwardOperation(ctx, validated)
-		fmt.Println(validated)
+		go forwarder.ForwardOperation(ctx)
+		validated = <-util.ValidatedChannel
 
 	case "/store_information":
-		validated = forwarder.ForwardOperation(ctx, validated)
-		fmt.Println(validated)
+		go forwarder.ForwardOperation(ctx)
+		validated = <-util.ValidatedChannel
 
 	case "/get_blocks":
-		validated = forwarder.ForwardOperation(ctx, validated)
-		fmt.Println(validated)
+		go forwarder.ForwardOperation(ctx)
+		validated = <-util.ValidatedChannel
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
@@ -42,6 +44,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 
 func main() {
 	util.InitClient()
+	util.InitChannels()
 	fmt.Println("Server listening on 'http://localhost:8080'")
 	fasthttp.ListenAndServe(":8080", handler)
 }

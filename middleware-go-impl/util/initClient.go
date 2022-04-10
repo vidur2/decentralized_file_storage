@@ -7,7 +7,6 @@ import (
 )
 
 var Client *fasthttp.Client
-var Port string
 
 // Initialized fasthttp client
 func InitClient() {

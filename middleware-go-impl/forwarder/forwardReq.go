@@ -30,7 +30,9 @@ Forwards a request from the reverse proxy to a linked node
 ctx: The context of the recieved request from the reverse proxy
 validated: A list of active nodes
 */
-func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
+func ForwardOperation(ctx *fasthttp.RequestCtx) {
+
+	validated := <-util.ValidatedChannel
 
 	// Original getting of variables
 	var clientReqBody string
@@ -38,8 +40,9 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
 	if string(ctx.Path()) != "/store_information" {
 		clientReqBody = string(ctx.Request.Body())
 	} else {
-		clientReqBody = string(HandleAddFile(ctx.Request.Body()))
+		clientReqBody = string(TransformFile(ctx.Request.Body()))
 	}
+
 	serverErr, ipAddr, idx := getAvailableServer(validated)
 	fmt.Println(ipAddr)
 	err, res := _handleFileOperation(ctx, "http://"+ipAddr, clientReqBody)
@@ -61,15 +64,16 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
 		ctx.Response.AppendBodyString("All nodes are inactive right now")
 	}
 
-	return validated
+	util.ValidatedChannel <- validated
 }
 
 func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {
+	util.ValidatedChannel <- validated
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.Response.AppendBodyString(serializeValidated(validated))
 }
 
-func HandleAddFile(body []byte) []byte {
+func TransformFile(body []byte) []byte {
 	var parsed FileInformation
 	err := json.Unmarshal(body, &parsed)
 
