@@ -34,12 +34,7 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
 	if serverErr == "" {
 		ctx.SetStatusCode(fasthttp.StatusOK)
 		body := string(res.Body())
-
-		if body == "[]" && string(ctx.Path()) == "/get_peers" {
-			ctx.Response.AppendBodyString(serializeValidated(validated))
-		} else {
-			ctx.Response.AppendBodyString(body)
-		}
+		ctx.Response.AppendBodyString(body)
 	} else {
 		ctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
 		ctx.Response.AppendBodyString("All nodes are inactive right now")
@@ -48,11 +43,18 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) []string {
 	return validated
 }
 
+func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.Response.AppendBodyString(serializeValidated(validated))
+}
+
 func serializeValidated(validated []string) string {
 	retString := "["
 	for idx, server := range validated {
 		if util.Port == ":8002" {
 			server = strings.Replace(server, util.Port, ":8003", 1)
+		} else {
+			server = strings.Replace(server, util.Port, ":443", 1)
 		}
 		if idx != len(validated)-1 {
 			retString += server + ","
@@ -68,7 +70,7 @@ func serializeValidated(validated []string) string {
 func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (error, fasthttp.Response) {
 	req := fasthttp.AcquireRequest()
 
-	if string(ctx.Path()) != "/get_blocks" && string(ctx.Path()) != "/get_peers" {
+	if string(ctx.Path()) != "/get_blocks" {
 		req.Header.SetMethod(fasthttp.MethodPost)
 		req.AppendBodyString(uri)
 	} else {

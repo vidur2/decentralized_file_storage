@@ -16,8 +16,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
 
 	case "/get_peers":
-		validated = forwarder.ForwardOperation(ctx, validated)
-		fmt.Println(validated)
+		forwarder.HandleGetPeers(ctx, validated)
 
 	case "/add_self_as_peer":
 		validated = hostappend.HandleAddSelf(ctx, validated)
