@@ -3,7 +3,6 @@ package hostappend
 import (
 	"fmt"
 	"strconv"
-	"vidur2/middleware/util"
 
 	realip "github.com/Ferluci/fast-realip"
 	"github.com/valyala/fasthttp"
@@ -14,10 +13,10 @@ func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) []string {
 	clientIp := realip.FromRequest(ctx)
 	fmt.Println(clientIp)
 
-	valid := testHost("http://" + clientIp + util.Port)
+	valid := testHost("http://" + clientIp + ":8002")
 
 	if valid {
-		validated = append(validated, clientIp+util.Port)
+		validated = append(validated, clientIp+":8002")
 	}
 
 	ctx.SetStatusCode(fasthttp.StatusOK)

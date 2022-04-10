@@ -41,15 +41,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 }
 
 func main() {
-	var mode string
 	util.InitClient()
-	fmt.Println("Enter the mode you are running the webserver on (local/global): ")
-	fmt.Scanln(&mode)
-	if mode == "local" {
-		util.Port = ":8002"
-	} else {
-		util.Port = ""
-	}
 	fmt.Println("Server listening on 'http://localhost:8080'")
 	fasthttp.ListenAndServe(":8080", handler)
 }

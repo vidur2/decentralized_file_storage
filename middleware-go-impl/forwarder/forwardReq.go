@@ -51,11 +51,7 @@ func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {
 func serializeValidated(validated []string) string {
 	retString := "["
 	for idx, server := range validated {
-		if util.Port == ":8002" {
-			server = strings.Replace(server, util.Port, ":8003", 1)
-		} else {
-			server = strings.Replace(server, util.Port, ":443", 1)
-		}
+		server = strings.Replace(server, ":8002", ":8003", 1)
 		if idx != len(validated)-1 {
 			retString += server + ","
 		} else {
