@@ -30,9 +30,7 @@ Forwards a request from the reverse proxy to a linked node
 ctx: The context of the recieved request from the reverse proxy
 validated: A list of active nodes
 */
-func ForwardOperation(ctx *fasthttp.RequestCtx) {
-
-	validated := <-util.ValidatedChannel
+func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 
 	// Original getting of variables
 	var clientReqBody string

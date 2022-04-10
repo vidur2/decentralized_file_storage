@@ -12,8 +12,6 @@ import (
 // Adds ip addr to list if it passes the nessescary testing
 func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) {
 
-	validated = <-util.ValidatedChannel
-
 	clientIp := realip.FromRequest(ctx)
 	fmt.Println(clientIp)
 

@@ -24,15 +24,15 @@ func handler(ctx *fasthttp.RequestCtx) {
 		validated = <-util.ValidatedChannel
 
 	case "/get_information_by_url":
-		go forwarder.ForwardOperation(ctx)
+		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
 
 	case "/store_information":
-		go forwarder.ForwardOperation(ctx)
+		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
 
 	case "/get_blocks":
-		go forwarder.ForwardOperation(ctx)
+		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
 
 	default:
