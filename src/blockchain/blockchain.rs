@@ -130,9 +130,10 @@ impl Blockchain {
     pub fn replace_chain(&mut self, replacement_chain: Vec<Block>) -> bool {
         if self.check_chain_validity(&replacement_chain)
             && self.check_if_superchain(&replacement_chain)
-        {
+        {   
             self.0 = replacement_chain;
             return true;
+
         } else {
             return false;
         }
