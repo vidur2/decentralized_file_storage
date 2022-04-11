@@ -57,7 +57,7 @@ func wsHandler(conn *fastws.Conn) {
 func main() {
 	util.InitClient()
 	go util.InitChannel()
-	time.Sleep(1)
+	time.Sleep(1000000)
 	go fasthttp.ListenAndServe(":8081", fastws.Upgrade(wsHandler))
 	go fasthttp.ListenAndServe(":8080", handler)
 	fmt.Println("Http server listening on 'ws://localhost:8080'")

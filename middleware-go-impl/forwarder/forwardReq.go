@@ -1,12 +1,30 @@
 package forwarder
 
 import (
+	"encoding/json"
 	"fmt"
 	"math/rand"
+	"strconv"
+	"strings"
+	"time"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
+	"golang.org/x/crypto/bcrypt"
 )
+
+type FileInformation struct {
+	Data      string `json:"data"`
+	LinkedUri string `json:"linked_uri"`
+	Creator   string `json:"creator"`
+	Version   string `json:"version"`
+	FileType  string `json:"file_type"`
+}
+
+type FileMessage struct {
+	Data      FileInformation `json:"data"`
+	Timestamp int64           `json:"timestamp"`
+}
 
 /*
 Forwards a request from the reverse proxy to a linked node
@@ -17,22 +35,29 @@ validated: A list of active nodes
 func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 
 	// Original getting of variables
-	uri := string(ctx.Request.Body())
+	var clientReqBody string
+
+	if string(ctx.Path()) != "/store_information" {
+		clientReqBody = string(ctx.Request.Body())
+	} else {
+		clientReqBody = string(TransformFile(ctx.Request.Body()))
+	}
+
 	serverErr, ipAddr, idx := getAvailableServer(validated)
-	fmt.Println(ipAddr)
-	err, res := _handleFileOperation(ctx, "http://"+ipAddr, uri)
+	res, err := _handleFileOperation(ctx, "http://"+ipAddr, clientReqBody)
 
 	// Keeps going until either an active server is found or no servers remain
 	for err != nil && serverErr == "" {
 		validated = util.Remove(validated, idx)
 		serverErr, ipAddr, idx = getAvailableServer(validated)
-		err, res = _handleFileOperation(ctx, "http://"+ipAddr, uri)
+		res, err = _handleFileOperation(ctx, "http://"+ipAddr, clientReqBody)
 	}
 
 	// If there is no server err return content
 	if serverErr == "" {
 		ctx.SetStatusCode(fasthttp.StatusOK)
-		ctx.Response.AppendBodyString(string(res.Body()))
+		body := string(res.Body())
+		ctx.Response.AppendBodyString(body)
 	} else {
 		ctx.SetStatusCode(fasthttp.StatusServiceUnavailable)
 		ctx.Response.AppendBodyString("All nodes are inactive right now")
@@ -41,13 +66,63 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 	util.ValidatedChannel <- validated
 }
 
+func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {
+	util.ValidatedChannel <- validated
+	ctx.SetStatusCode(fasthttp.StatusOK)
+	ctx.Response.AppendBodyString(serializeValidated(validated))
+}
+
+func TransformFile(body []byte) []byte {
+	var parsed FileInformation
+	err := json.Unmarshal(body, &parsed)
+
+	if err != nil {
+		return nil
+	}
+
+	fullBody := FileMessage{
+		Timestamp: time.Now().Unix(),
+		Data:      parsed,
+	}
+
+	hashed, err := bcrypt.GenerateFromPassword([]byte(fullBody.Data.Creator+strconv.Itoa(int(fullBody.Timestamp))), 10)
+
+	if err != nil {
+		return nil
+	}
+
+	fullBody.Data.Creator = string(hashed)
+
+	newBody, err := json.Marshal(fullBody)
+
+	if err != nil {
+		return nil
+	}
+
+	return newBody
+}
+
+func serializeValidated(validated []string) string {
+	retString := "["
+	for idx, server := range validated {
+		server = strings.Replace(server, ":8002", ":8003", 1)
+		if idx != len(validated)-1 {
+			retString += server + ","
+		} else {
+			retString += server + "]"
+		}
+	}
+
+	return retString
+}
+
 // Helper function to act as a request client
-func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (error, fasthttp.Response) {
+func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, clientReqBody string) (fasthttp.Response, error) {
 	req := fasthttp.AcquireRequest()
 
-	if string(ctx.Path()) != "/get_blocks" && string(ctx.Path()) != "/get_peers" {
+	if string(ctx.Path()) != "/get_blocks" {
 		req.Header.SetMethod(fasthttp.MethodPost)
-		req.AppendBodyString(uri)
+		req.AppendBodyString(clientReqBody)
 	} else {
 		req.Header.SetMethod(fasthttp.MethodGet)
 	}
@@ -58,13 +133,11 @@ func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, uri string) (
 
 	err := util.Client.Do(req, res)
 
-	fmt.Println(string(res.Body()))
-
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	return err, *res
+	return *res, err
 }
 
 // Gets an active server at random
