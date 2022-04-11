@@ -22,20 +22,21 @@ impl Blockchain {
 
     /// Adds block to blockchain
     ///
-    /// # Arguments
+    /// ## Arguments
     ///
     /// * `file`: A struct of type FileInformation that contains the data in the file being addded
     ///
-    /// # Returns
+    /// ## Returns
     /// A boolean indicating whether adding the block was succesful
     ///
-    pub fn add_block(&mut self, file: FileInformation) -> bool {
+    pub fn add_block(&mut self, file: FileInformation, timestamp: i128) -> bool {
         let next_index = self.0.len();
         let prev_block = &self.0[next_index - 1];
         let block = Block::new(
             next_index as u128,
-            prev_block.hash_block().unwrap(),
+            prev_block.hash.clone(),
             file.clone(),
+            timestamp,
         );
         if self.check_block_validity(&block, &prev_block) && !self.check_if_exists(file) {
             self.0.push(block);
@@ -47,10 +48,10 @@ impl Blockchain {
 
     /// Gets the latest iteration of a Block containing the FileInformation for a specified uri
     ///
-    /// # Arguments
+    /// ## Arguments
     /// * `uri`: The uri/url that is used to search for the FilInformation
     ///
-    /// # Returns
+    /// ## Returns
     /// An optional immutable reference to a Block
     /// * If the uri is in the block chain, the option will be non-none
     pub fn find_block_by_uri(&self, uri: &str) -> Option<&Block> {
@@ -65,10 +66,10 @@ impl Blockchain {
 
     /// Method used to add verify and add a block pushed over a websocket
     ///
-    /// # Arguments
+    /// ## Arguments
     /// * `new_block`: The block being added
     ///
-    /// # Returns
+    /// ## Returns
     /// Boolean status on whether block is valid
     pub fn add_unverified_block(&mut self, new_block: Block) -> bool {
         if self.check_block_validity(&new_block, &self.0[self.0.len()]) {
@@ -84,7 +85,7 @@ impl Blockchain {
     /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
         if new_block.index - 1 != previous_block.index
-            || previous_block.hash_block().unwrap() != new_block.previous_hash
+            || previous_block.hash != new_block.previous_hash
         {
             return false;
         } else {
@@ -103,7 +104,7 @@ impl Blockchain {
             let current_block = &new_chain[i];
             let previous_block = &new_chain[i - 1];
             let block_validity = self.check_block_validity(current_block, previous_block);
-            if !block_validity {
+            if !block_validity || previous_block.timestamp > current_block.timestamp {
                 is_valid = false;
             }
         }

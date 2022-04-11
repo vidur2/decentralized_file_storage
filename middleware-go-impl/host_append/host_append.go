@@ -60,5 +60,4 @@ func handleAdd(ipInformation string) {
 			}
 		}
 	}
-
 }

@@ -17,6 +17,12 @@ enum MessageType {
     Block(Block),
 }
 
+#[derive(Deserialize)]
+struct FileMessage {
+    data: FileInformation,
+    timestamp: i128,
+}
+
 pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
     let http_listener = TcpListener::bind("127.0.0.1:8002").unwrap();
     let ws_listener = TcpListener::bind("127.0.0.1:8003").unwrap();
@@ -70,16 +76,23 @@ pub fn handle_socket_connection(
     blockchain: SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
-    _handle_ws_connection_client(ws, blockchain, sockets)
+    _handle_ws_connection(ws, blockchain, sockets)
 }
 
-fn _handle_ws_connection_client(
+/// Handles ws connection message, mainly changing blockchain/verfication
+///
+/// ## Arguments
+/// * `ws_uw`: The socket being handled
+/// * `blockchain`: The data on the blockchain
+/// * `sockets`: A vector of the shared websockets
+fn _handle_ws_connection(
     ws_uw: SharedSocket,
     blockchain: SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
     loop {
-        let msg = ws_uw.lock().unwrap().read_message().unwrap();
+        let mut read_guarded = ws_uw.lock().unwrap();
+        let msg = read_guarded.read_message().unwrap();
         match msg {
             tungstenite::Message::Text(block_infor) => {
                 let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
@@ -140,9 +153,9 @@ fn handle_http(
             if buffer.starts_with(b"POST /store_information HTTP/1.1") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
-                let file_infor_in_body: FileInformation = serde_json::from_str(&body).unwrap();
+                let file_infor_in_body: FileMessage = serde_json::from_str(&body).unwrap();
                 let mut guard = blockchain.lock().unwrap();
-                guard.add_block(file_infor_in_body);
+                guard.add_block(file_infor_in_body.data, file_infor_in_body.timestamp);
 
                 let ws_iter = sockets.lock().unwrap();
                 let reffed = serde_json::to_string_pretty(&guard.0).unwrap();
@@ -206,29 +219,31 @@ fn handle_http(
                 );
 
                 response_content.push_str(&response);
-            } else if buffer.starts_with(b"GET /get_peers HTTP/1.1") {
-                let sockets = sockets.lock().unwrap();
-                let mut peers = Vec::new();
-                for (idx, socket) in sockets.iter().enumerate() {
-                    let socket_guard = socket.lock().unwrap();
-                    let stream = socket_guard.get_ref();
-                    if let MaybeTlsStream::Plain(stream_uw) = stream {
-                        if idx == 0 {
-                            peers.push(stream_uw.local_addr().unwrap());
-                        }
-                        peers.push(stream_uw.peer_addr().unwrap());
+            }
+            // Returns hash given timestamp
+            else if buffer.starts_with(b"POST /get_hash HTTP/1.1") {
+                let timestamp: i128 = parse_body(String::from_utf8(buffer.to_vec()).unwrap())
+                    .trim()
+                    .parse()
+                    .unwrap();
+                let blockchain = blockchain.lock().unwrap();
+                let mut hash: &str = "No matching hash";
+
+                for block in blockchain.0.iter().rev() {
+                    if block.timestamp == timestamp {
+                        hash = &block.hash
                     }
                 }
 
-                let addr_ser = serde_json::to_string(&peers).unwrap();
                 let response = format!(
                     "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-                    addr_ser.len(),
-                    addr_ser
+                    hash.len(),
+                    hash
                 );
 
-                response_content.push_str(&response)
+                response_content.push_str(&response);
             }
+
             stream.write(response_content.as_bytes()).unwrap();
         }
         Err(_) => todo!(),
@@ -244,7 +259,7 @@ fn parse_body(body: String) -> String {
         .parse()
         .expect("Could not cast to integer");
     let split_body: Vec<&str> = body.split("\n").collect();
-    println!("{}", split_body[split_body.len() - 1]);
+
     String::from(split_body[split_body.len() - 1])
         .split_at(content_len_int)
         .0

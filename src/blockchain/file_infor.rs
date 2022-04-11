@@ -31,7 +31,7 @@ pub struct FileInformation {
 impl FileInformation {
     /// Constructor for FileInformation Object
     ///
-    /// # Arguments
+    /// ## Arguments
     ///
     /// * `creator`- An owned string of the user who created the file
     /// * `version`- An owned string representation of the file
