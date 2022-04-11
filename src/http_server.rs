@@ -76,16 +76,23 @@ pub fn handle_socket_connection(
     blockchain: SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
-    _handle_ws_connection_client(ws, blockchain, sockets)
+    _handle_ws_connection(ws, blockchain, sockets)
 }
 
-fn _handle_ws_connection_client(
+/// Handles ws connection message, mainly changing blockchain/verfication
+///
+/// ## Arguments
+/// * `ws_uw`: The socket being handled
+/// * `blockchain`: The data on the blockchain
+/// * `sockets`: A vector of the shared websockets
+fn _handle_ws_connection(
     ws_uw: SharedSocket,
     blockchain: SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
     loop {
-        let msg = ws_uw.lock().unwrap().read_message().unwrap();
+        let mut read_guarded = ws_uw.lock().unwrap();
+        let msg = read_guarded.read_message().unwrap();
         match msg {
             tungstenite::Message::Text(block_infor) => {
                 let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
