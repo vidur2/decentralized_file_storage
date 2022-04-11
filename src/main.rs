@@ -41,7 +41,6 @@ fn init_node(
 
     let mut reffed_bc = blockchain.lock().unwrap();
 
-    println!("{}", resp_peers);
     if &resp == "true" && &resp_peers != "All nodes are inactive right now" {
         let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
             .unwrap()
