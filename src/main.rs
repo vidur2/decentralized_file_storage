@@ -22,7 +22,7 @@ const MIDDLEWARE_ADDR_ADD_SELF: &str = "http://localhost:8080/add_self_as_peer";
 /// * Connects to middleware
 /// * Connects to all other nodes
 ///
-/// ## Arguments
+/// ##  Arguments
 /// * `blockchain`: A shared reference to a constructed Blockchain struct
 /// * `sockets`: A vector of websockets
 fn init_node(

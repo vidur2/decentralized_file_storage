@@ -22,11 +22,11 @@ impl Blockchain {
 
     /// Adds block to blockchain
     ///
-    /// # Arguments
+    /// ## Arguments
     ///
     /// * `file`: A struct of type FileInformation that contains the data in the file being addded
     ///
-    /// # Returns
+    /// ## Returns
     /// A boolean indicating whether adding the block was succesful
     ///
     pub fn add_block(&mut self, file: FileInformation, timestamp: i128) -> bool {
@@ -48,10 +48,10 @@ impl Blockchain {
 
     /// Gets the latest iteration of a Block containing the FileInformation for a specified uri
     ///
-    /// # Arguments
+    /// ## Arguments
     /// * `uri`: The uri/url that is used to search for the FilInformation
     ///
-    /// # Returns
+    /// ## Returns
     /// An optional immutable reference to a Block
     /// * If the uri is in the block chain, the option will be non-none
     pub fn find_block_by_uri(&self, uri: &str) -> Option<&Block> {
@@ -66,10 +66,10 @@ impl Blockchain {
 
     /// Method used to add verify and add a block pushed over a websocket
     ///
-    /// # Arguments
+    /// ## Arguments
     /// * `new_block`: The block being added
     ///
-    /// # Returns
+    /// ## Returns
     /// Boolean status on whether block is valid
     pub fn add_unverified_block(&mut self, new_block: Block) -> bool {
         if self.check_block_validity(&new_block, &self.0[self.0.len()]) {

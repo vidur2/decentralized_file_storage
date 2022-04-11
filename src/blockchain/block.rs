@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 
 /// Struct to represent a single file on the blockchain
 ///
-/// # Fields
+/// ## Fields
 ///
 /// * `index`- Where the block is in the blockchain
 /// * `previous_hash`- Sha256 representation of the data in the previous block
@@ -24,7 +24,7 @@ pub struct Block {
 impl Block {
     /// Constructor for single Block struct
     ///
-    /// # Arguments
+    /// ## Arguments
     ///
     /// * `index`- Index of the block
     /// * `previous hash`- Previous hash of the block (used for verification)
