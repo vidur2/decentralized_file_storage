@@ -14,4 +14,4 @@ This is currently in the works. The plan for this blockchain is to use a traditi
 This is similar to IPFS's gateway system. There is one public gateway which everyone can use located at INSERT DOMAIN NAME HERE, however, you can run your own gateway for personal use if you need faster access to the blockchain. This gateway is linked up to all the nodes that the main gateway is linked up to, and operates on a websocket protocol with the public gateway.
 
 ## Running a Node
-In order to run a node, install the binary labelled: `file_blockchain_but_efficient` and run it. Then connect your broadcasting ip's 8002 to your public ip's 8002. Do the same for 8003. After that you are all set!
+In order to run a node, install the binary labelled: `file_blockchain_but_efficient` and run it. Enter your credentials. If you do not have credentials SIGN UP STEPS HERE. Then connect your broadcasting ip's 8002 to your public ip's 8002. Do the same for 8003. After that you are all set! <- Currently in the works
