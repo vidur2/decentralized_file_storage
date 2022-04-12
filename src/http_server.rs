@@ -24,8 +24,8 @@ struct FileMessage {
 }
 
 pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
-    let http_listener = TcpListener::bind("127.0.0.1:8002").unwrap();
-    let ws_listener = TcpListener::bind("127.0.0.1:8003").unwrap();
+    let http_listener = TcpListener::bind("0.0.0.0:8002").unwrap();
+    let ws_listener = TcpListener::bind("0.0.0.0:8003").unwrap();
 
     // Create pointers for thread
     let ws_blockchain = Arc::clone(&blockchain);
