@@ -1,14 +1,18 @@
 use std::sync::{Arc, Mutex};
 
+use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
 use super::block::Block;
 use super::file_infor::FileInformation;
+use base64_url;
 
 pub type SharedChain = Arc<Mutex<Blockchain>>;
 
 #[derive(Deserialize, Serialize)]
 pub struct Blockchain(pub Vec<Block>);
+
+const ACCT_ID: &str = "";
 
 impl Blockchain {
     /// Constructor for blockchain
@@ -124,6 +128,36 @@ impl Blockchain {
             return true;
         } else {
             return false;
+        }
+    }
+
+    fn check_if_hash_valid(file_hash: &str) -> bool {
+        let client = reqwest::blocking::Client::new();
+        let body = base64_url::encode(&format!("{{
+            'hash': '{}'
+        }}", file_hash));
+        let res = client.post("https://rpc.testnet.near.org")
+            .body(format!("{{
+                'jsonrpc': '2.0',
+                'id': 'dontcare',
+                'method': 'query',
+                'params': {{
+                  'request_type': 'call_function',
+                  'finality': 'final',
+                  'account_id': '{}',
+                  'method_name': 'check_if_hash_exists',
+                  'args_base64': '{}'
+                }}
+              }}", ACCT_ID, body))
+                .send()
+                .unwrap()
+                .text()
+                .unwrap();
+        
+        if res.contains("true") {
+            return true
+        } else {
+            return false
         }
     }
 
