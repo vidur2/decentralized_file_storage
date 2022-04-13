@@ -10,6 +10,7 @@ import (
 	smartcontractinter "vidur2/middleware/smart_contract_inter"
 	"vidur2/middleware/util"
 
+	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/valyala/fasthttp"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -74,17 +75,13 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 
 			if err == nil {
 
-				// Gets the hash based on the timestamp from node
-				req := fasthttp.AcquireRequest()
-				req.SetRequestURI("http://" + ipAddr + "/get_hash")
-				req.AppendBodyString(strconv.FormatInt(time, 10))
-				res = *fasthttp.AcquireResponse()
-				util.Client.Do(req, &res)
-
 				// Gets the other parameters needed in the smart contract call
 				creator := getPublicKey(fileInformation.Creator)
-				tokOwed := float64(len([]byte(fileInformation.Data))) / 1_000_000_000.0
-				smartcontractinter.HandleAddFileTransaction(string(res.Body()), tokOwed, uint64(time), creator)
+
+				if creator != "" {
+					tokOwed := float64(len([]byte(fileInformation.Data))) / 1_000_000_000.0
+					smartcontractinter.HandleAddFileTransaction(tokOwed, uint64(time), creator)
+				}
 			}
 		}
 
@@ -100,8 +97,15 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 }
 
 // Parses public key from private key
-func getPublicKey(s string) string {
-	panic("unimplemented")
+func getPublicKey(secret string) string {
+	privateKey, err := crypto.UnmarshalEd25519PrivateKey([]byte(secret))
+
+	if err != nil {
+		publicKey, _ := crypto.MarshalPublicKey(privateKey.GetPublic())
+		return string(publicKey)
+	} else {
+		return ""
+	}
 }
 
 func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {

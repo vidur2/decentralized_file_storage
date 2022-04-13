@@ -35,7 +35,7 @@ impl Block {
             previous_hash: previous_hash.clone(),
             timestamp,
             data: data.clone(),
-            hash: hash_block(index, previous_hash, timestamp.try_into().unwrap(), data).unwrap()
+            hash: hash_block(index, previous_hash, timestamp.try_into().unwrap(), data).unwrap(),
         }
     }
 
@@ -56,7 +56,7 @@ impl Block {
             previous_hash: String::from("0"),
             timestamp,
             data: data.clone(),
-            hash: hash_block(0, String::from("0"), timestamp as u128, data).unwrap()
+            hash: hash_block(0, String::from("0"), timestamp as u128, data).unwrap(),
         };
     }
 }

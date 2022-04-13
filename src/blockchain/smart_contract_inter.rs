@@ -1,11 +1,11 @@
 pub trait SmartContractInteractions {
-    fn check_if_hash_valid(&self, file_hash: &str, account_id: &str) -> bool {
+    fn check_if_txn_valid(&self, timestamp: i128, account_id: &str) -> bool {
         let client = reqwest::blocking::Client::new();
         let body = base64_url::encode(&format!(
             "{{
-            'hash': '{}'
+            'timestamp': '{}'
         }}",
-            file_hash
+            timestamp
         ));
         let res = client
             .post("https://rpc.testnet.near.org")
@@ -18,7 +18,7 @@ pub trait SmartContractInteractions {
                   'request_type': 'call_function',
                   'finality': 'final',
                   'account_id': '{}',
-                  'method_name': 'check_if_hash_exists',
+                  'method_name': 'check_if_txn_exists',
                   'args_base64': '{}'
                 }}
               }}",

@@ -220,29 +220,29 @@ fn handle_http(
 
                 response_content.push_str(&response);
             }
-            // Returns hash given timestamp
-            else if buffer.starts_with(b"POST /get_hash HTTP/1.1") {
-                let timestamp: i128 = parse_body(String::from_utf8(buffer.to_vec()).unwrap())
-                    .trim()
-                    .parse()
-                    .unwrap();
-                let blockchain = blockchain.lock().unwrap();
-                let mut hash: &str = "No matching hash";
+            // // Returns hash given timestamp
+            // else if buffer.starts_with(b"POST /get_hash HTTP/1.1") {
+            //     let timestamp: i128 = parse_body(String::from_utf8(buffer.to_vec()).unwrap())
+            //         .trim()
+            //         .parse()
+            //         .unwrap();
+            //     let blockchain = blockchain.lock().unwrap();
+            //     let mut hash: &str = "No matching hash";
 
-                for block in blockchain.0.iter().rev() {
-                    if block.timestamp == timestamp {
-                        hash = &block.hash
-                    }
-                }
+            //     for block in blockchain.0.iter().rev() {
+            //         if block.timestamp == timestamp {
+            //             hash = &block.hash
+            //         }
+            //     }
 
-                let response = format!(
-                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-                    hash.len(),
-                    hash
-                );
+            //     let response = format!(
+            //         "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+            //         hash.len(),
+            //         hash
+            //     );
 
-                response_content.push_str(&response);
-            }
+            //     response_content.push_str(&response);
+            // }
 
             stream.write(response_content.as_bytes()).unwrap();
         }

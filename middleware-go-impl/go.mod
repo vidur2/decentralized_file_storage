@@ -10,6 +10,14 @@ require (
 )
 
 require (
+	github.com/btcsuite/btcd v0.20.1-beta // indirect
+	github.com/gogo/protobuf v1.3.1 // indirect
+	github.com/libp2p/go-openssl v0.0.7 // indirect
+	github.com/minio/sha256-simd v0.1.1 // indirect
+	github.com/spacemonkeygo/spacelog v0.0.0-20180420211403-2296661a0572 // indirect
+)
+
+require (
 	github.com/StackExchange/wmi v0.0.0-20190523213315-cbe66965904d // indirect
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/deckarep/golang-set v0.0.0-20180603214616-504e848d77ea // indirect
@@ -18,6 +26,7 @@ require (
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
+	github.com/libp2p/go-libp2p-core v0.15.0
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/near/borsh-go v0.3.0 // indirect
 	github.com/shirou/gopsutil v3.21.4-0.20210419000835-c7a38de76ee5+incompatible // indirect

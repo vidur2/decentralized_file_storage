@@ -1,5 +1,5 @@
-use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
+use std::sync::{Arc, Mutex};
 
 use super::block::Block;
 use super::file_infor::FileInformation;
@@ -87,8 +87,9 @@ impl Blockchain {
     /// * Used to verify adding of files over websocket
     /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
-        if new_block.index - 1 != previous_block.index
-            || previous_block.hash != new_block.previous_hash && self.check_if_hash_valid(&new_block.hash, ACCT_ID)
+        if (new_block.index - 1 != previous_block.index
+            || previous_block.hash != new_block.previous_hash)
+            && self.check_if_txn_valid(new_block.timestamp, ACCT_ID)
         {
             return false;
         } else {
