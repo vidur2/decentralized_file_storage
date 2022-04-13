@@ -13,7 +13,7 @@ import (
 const PRIVATE_KEY = ""
 const ACCT_ID = ""
 
-func HandleAddFileTransaction(file_hash string, tokens_transferred uint64, timestamp uint64, from_account_id string) bool {
+func HandleAddFileTransaction(file_hash string, tokens_transferred float64, timestamp uint64, from_account_id string) bool {
 	client := initWalletConn()
 	ctx := context.Background()
 

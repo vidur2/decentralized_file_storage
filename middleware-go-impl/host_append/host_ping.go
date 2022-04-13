@@ -17,7 +17,9 @@ func TestHost(url string) bool {
 	req.SetRequestURI(url + "/store_information")
 	checkedFileInf := generateRandomFileInformation()
 	fileInfAsString, _ := json.Marshal(checkedFileInf)
-	req.AppendBody(forwarder.TransformFile(fileInfAsString))
+
+	file, _ := forwarder.TransformFile(fileInfAsString)
+	req.AppendBody(file)
 	res := fasthttp.AcquireResponse()
 
 	// Makes request

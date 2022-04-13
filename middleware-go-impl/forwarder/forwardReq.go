@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	smartcontractinter "vidur2/middleware/smart_contract_inter"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
@@ -36,11 +37,14 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 
 	// Original getting of variables
 	var clientReqBody string
+	var file []byte
+	var time int64
 
 	if string(ctx.Path()) != "/store_information" {
 		clientReqBody = string(ctx.Request.Body())
 	} else {
-		clientReqBody = string(TransformFile(ctx.Request.Body()))
+		file, time = TransformFile(ctx.Request.Body())
+		clientReqBody = string(file)
 	}
 
 	serverErr, ipAddr, idx := getAvailableServer(validated)
@@ -56,6 +60,22 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 	// If there is no server err return content
 	if serverErr == "" {
 		ctx.SetStatusCode(fasthttp.StatusOK)
+		if string(ctx.Path()) == "/store_information" {
+			var fileInformation FileInformation
+			err := json.Unmarshal(ctx.Request.Body(), &fileInformation)
+
+			if err == nil {
+				creator := getPublicKey(fileInformation.Creator)
+				req := fasthttp.AcquireRequest()
+				req.SetRequestURI("http://" + ipAddr + "/get_hash")
+				req.AppendBodyString(strconv.FormatInt(time, 10))
+				res = *fasthttp.AcquireResponse()
+				util.Client.Do(req, &res)
+
+				tokOwed := float64(len([]byte(fileInformation.Data))) / 1000000000.0
+				smartcontractinter.HandleAddFileTransaction(string(res.Body()), tokOwed, uint64(time), creator)
+			}
+		}
 		body := string(res.Body())
 		ctx.Response.AppendBodyString(body)
 	} else {
@@ -66,29 +86,35 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 	util.ValidatedChannel <- validated
 }
 
+func getPublicKey(s string) string {
+	panic("unimplemented")
+}
+
 func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {
 	util.ValidatedChannel <- validated
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.Response.AppendBodyString(serializeValidated(validated))
 }
 
-func TransformFile(body []byte) []byte {
+func TransformFile(body []byte) ([]byte, int64) {
 	var parsed FileInformation
 	err := json.Unmarshal(body, &parsed)
 
 	if err != nil {
-		return nil
+		return nil, 0
 	}
 
+	timestamp := time.Now().Unix()
+
 	fullBody := FileMessage{
-		Timestamp: time.Now().Unix(),
+		Timestamp: timestamp,
 		Data:      parsed,
 	}
 
 	hashed, err := bcrypt.GenerateFromPassword([]byte(fullBody.Data.Creator+strconv.Itoa(int(fullBody.Timestamp))), 10)
 
 	if err != nil {
-		return nil
+		return nil, 0
 	}
 
 	fullBody.Data.Creator = string(hashed)
@@ -96,10 +122,10 @@ func TransformFile(body []byte) []byte {
 	newBody, err := json.Marshal(fullBody)
 
 	if err != nil {
-		return nil
+		return nil, 0
 	}
 
-	return newBody
+	return newBody, timestamp
 }
 
 func serializeValidated(validated []string) string {
