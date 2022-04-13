@@ -10,8 +10,8 @@ import (
 	"github.com/textileio/near-api-go/types"
 )
 
-const PRIVATE_KEY = ""
-const ACCT_ID = ""
+const PRIVATE_KEY = "ed25519:5LkcnjVhkApabobMfp9671pPdu4KM6bCGh4V7MnHMKXnD9WaPEjcqoex788xAMaCjDD9CHNUAhkHt8ijRQDboft6"
+const ACCT_ID = "filechain.testnet"
 
 func HandleAddFileTransaction(file_hash string, tokens_transferred float64, timestamp uint64, from_account_id string) bool {
 	client := initWalletConn()

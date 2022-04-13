@@ -37,13 +37,19 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 
 	// Original getting of variables
 	var clientReqBody string
+
+	// Variables for file storage information
 	var file []byte
 	var time int64
 
+	body := ctx.Request.Body()
+
+	// Handling different request paths
 	if string(ctx.Path()) != "/store_information" {
-		clientReqBody = string(ctx.Request.Body())
+		clientReqBody = string(body)
 	} else {
-		file, time = TransformFile(ctx.Request.Body())
+		// Storing information in variables
+		file, time = TransformFile(body)
 		clientReqBody = string(file)
 	}
 
@@ -60,22 +66,29 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 	// If there is no server err return content
 	if serverErr == "" {
 		ctx.SetStatusCode(fasthttp.StatusOK)
+
+		// Interaction with the smart contract
 		if string(ctx.Path()) == "/store_information" {
 			var fileInformation FileInformation
-			err := json.Unmarshal(ctx.Request.Body(), &fileInformation)
+			err := json.Unmarshal(body, &fileInformation)
 
 			if err == nil {
-				creator := getPublicKey(fileInformation.Creator)
+
+				// Gets the hash based on the timestamp from node
 				req := fasthttp.AcquireRequest()
 				req.SetRequestURI("http://" + ipAddr + "/get_hash")
 				req.AppendBodyString(strconv.FormatInt(time, 10))
 				res = *fasthttp.AcquireResponse()
 				util.Client.Do(req, &res)
 
-				tokOwed := float64(len([]byte(fileInformation.Data))) / 1000000000.0
+				// Gets the other parameters needed in the smart contract call
+				creator := getPublicKey(fileInformation.Creator)
+				tokOwed := float64(len([]byte(fileInformation.Data))) / 1_000_000_000.0
 				smartcontractinter.HandleAddFileTransaction(string(res.Body()), tokOwed, uint64(time), creator)
 			}
 		}
+
+		// Appends response
 		body := string(res.Body())
 		ctx.Response.AppendBodyString(body)
 	} else {
@@ -86,6 +99,7 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 	util.ValidatedChannel <- validated
 }
 
+// Parses public key from private key
 func getPublicKey(s string) string {
 	panic("unimplemented")
 }

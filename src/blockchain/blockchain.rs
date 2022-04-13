@@ -9,7 +9,7 @@ pub type SharedChain = Arc<Mutex<Blockchain>>;
 
 #[derive(Deserialize, Serialize)]
 pub struct Blockchain(pub Vec<Block>);
-const ACCT_ID: &str = "";
+const ACCT_ID: &str = "filechain.testnet";
 
 impl SmartContractInteractions for Blockchain {}
 
