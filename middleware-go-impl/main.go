@@ -19,7 +19,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 	switch string(ctx.Path()) {
 
 	case "/get_peers":
-		go forwarder.ForwardOperation(ctx, validated)
+		go forwarder.HandleGetPeers(ctx, validated)
 		validated = <-util.ValidatedChannel
 		fmt.Println(validated)
 
