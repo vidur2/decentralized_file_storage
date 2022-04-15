@@ -10,7 +10,7 @@ The file blockchain  is no proof of work or stake. A file is just stored on the 
 ### The transaction blockchain
 This is currently in the works. The plan for this blockchain is to use a traditional proof of staking mechanism, with a file's hash being included in the data for a given transaction. This allows nodes to verify with the proof of staking mechanism that a given file is valid.
 
-### Gatewys
+### Gateways
 This is similar to IPFS's gateway system. There is one public gateway which everyone can use located at INSERT DOMAIN NAME HERE, however, you can run your own gateway for personal use if you need faster access to the blockchain. This gateway is linked up to all the nodes that the main gateway is linked up to, and operates on a websocket protocol with the public gateway.
 
 ## Running a Node
