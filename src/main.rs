@@ -45,7 +45,7 @@ fn init_node(
         .unwrap();
 
     let mut reffed_bc = blockchain.lock().unwrap();
-    
+
     if &resp == "true" && &resp_peers != "[" {
         let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
             .unwrap()

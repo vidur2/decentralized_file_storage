@@ -79,9 +79,11 @@ impl Blockchain {
     /// * Used to verify adding of files over websocket
     /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
-        let valid = new_block.data.verify_signature();
+        let valid =
+            new_block.data.verify_signature() && !self.check_block_validity_balance(new_block);
         if new_block.index - 1 != previous_block.index
-            || previous_block.hash != new_block.previous_hash || !valid
+            || previous_block.hash != new_block.previous_hash
+            || !valid
         {
             return false;
         } else {
@@ -105,25 +107,31 @@ impl Blockchain {
         return true;
     }
 
-    // fn check_if_superchain(&self, new_chain: &Vec<Block>) -> bool {
-    //     if new_chain.len() > self.0.len() {
-    //         let blockchain = &self.0;
-    //         for (idx, block) in blockchain.iter().enumerate() {
-    //             if &new_chain[idx] != block {
-    //                 return false;
-    //             }
-    //         }
+    pub fn get_amt_in_wallet(&self, acct: &Vec<u8>) -> i32 {
+        let mut balance: i32 = 0;
+        for block in self.0.iter() {
+            if &block.data.creator == acct {
+                balance -= block.data.tokens_transferred as i32
+            } else if &block.data.creator == acct {
+                balance += block.data.tokens_transferred as i32
+            }
+        }
 
-    //         return true;
-    //     } else {
-    //         return false;
-    //     }
-    // }
+        return balance;
+    }
+
+    fn check_block_validity_balance(&self, block: &Block) -> bool {
+        let amt = self.get_amt_in_wallet(&block.data.creator);
+        if amt - block.data.tokens_transferred as i32 >= 0 {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     /// Function used to replace a chain recieved over websocket
     pub fn replace_chain(&mut self, replacement_chain: Vec<Block>) -> bool {
-        if self.check_chain_validity(&replacement_chain)
-        {
+        if self.check_chain_validity(&replacement_chain) {
             self.0 = replacement_chain;
             return true;
         } else {
