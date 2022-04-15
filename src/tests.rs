@@ -16,7 +16,7 @@ mod tests {
         let block1 = Block::new(blockchain.0.len() as u128, blockchain.0.last().unwrap().hash.clone(), BlockInformation {
             data: Some(get_random(8)),
             linked_uri: linked_uri.clone(),
-            creator: account.public.to_bytes(),
+            creator: account.public.to_bytes().to_vec(),
             version: String::from("0.0.0"),
             file_type: crate::blockchain::file_infor::FileType::DataStore,
             signature: signature.to_bytes().to_vec(),
@@ -34,7 +34,7 @@ mod tests {
         let block2 = Block::new(blockchain.0.len() as u128, blockchain.0.last().unwrap().hash.clone(), BlockInformation {
             data: Some(get_random(8)),
             linked_uri: linked_uri.clone(),
-            creator: account.public.to_bytes(),
+            creator: account.public.to_bytes().to_vec(),
             version: String::from("0.0.0"),
             file_type: crate::blockchain::file_infor::FileType::DataStore,
             signature: signature.to_bytes().to_vec(),
@@ -52,7 +52,7 @@ mod tests {
         let block3 = Block::new(blockchain.0.len() as u128, blockchain.0.last().unwrap().hash.clone(), BlockInformation {
             data: Some(get_random(8)),
             linked_uri: linked_uri.clone(),
-            creator: account.public.to_bytes(),
+            creator: account.public.to_bytes().to_vec(),
             version: String::from("0.0.0"),
             file_type: crate::blockchain::file_infor::FileType::DataStore,
             signature: signature.to_bytes().to_vec(),
@@ -70,7 +70,7 @@ mod tests {
         let block4 = Block::new(blockchain.0.len() as u128, blockchain.0.last().unwrap().hash.clone(), BlockInformation {
             data: Some(get_random(8)),
             linked_uri,
-            creator: account.public.to_bytes(),
+            creator: account.public.to_bytes().to_vec(),
             version: String::from("0.0.0"),
             file_type: crate::blockchain::file_infor::FileType::DataStore,
             signature: signature.to_bytes().to_vec(),

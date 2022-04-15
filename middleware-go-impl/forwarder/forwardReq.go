@@ -9,16 +9,6 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-type FileInformation struct {
-	Data      string `json:"data"`
-	LinkedUri string `json:"linked_uri"`
-	Creator   string `json:"creator"`
-	Version   string `json:"version"`
-	FileType  string `json:"file_type"`
-	Signature string `json:"signature"`
-	Timestamp string `json:"timestamp"`
-}
-
 /*
 Forwards a request from the reverse proxy to a linked node
 

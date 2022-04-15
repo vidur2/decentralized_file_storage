@@ -19,7 +19,7 @@ pub struct BlockInformation {
     pub linked_uri: String,
 
     /// Creator of file for uniqueness purposes in hashing
-    pub(crate) creator: [u8; 32],
+    pub(crate) creator: Vec<u8>,
 
     /// Same purpose as above field
     pub(crate) version: String,
@@ -69,7 +69,7 @@ impl BlockInformation {
                     return Some(Self {
                         data: Some(final_data_url),
                         linked_uri: linked_uri.unwrap(),
-                        creator,
+                        creator: creator.to_vec(),
                         version: version.unwrap(),
                         file_type: file_type.unwrap(),
                         signature,
@@ -85,7 +85,7 @@ impl BlockInformation {
                 return Some(Self {
                     data: None,
                     linked_uri: String::from(""),
-                    creator,
+                    creator: creator.to_vec(),
                     version: String::from(""),
                     file_type: FileType::DataStore,
                     signature,
