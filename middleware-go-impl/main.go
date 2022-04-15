@@ -2,10 +2,13 @@ package main
 
 import (
 	"fmt"
+	"time"
 	"vidur2/middleware/forwarder"
+	gatewayconn "vidur2/middleware/gateway_conn"
 	hostappend "vidur2/middleware/host_append"
 	"vidur2/middleware/util"
 
+	"github.com/dgrr/fastws"
 	"github.com/valyala/fasthttp"
 )
 
@@ -18,22 +21,27 @@ func handler(ctx *fasthttp.RequestCtx) {
 	case "/get_peers":
 		go forwarder.HandleGetPeers(ctx, validated)
 		validated = <-util.ValidatedChannel
+		fmt.Println(validated)
 
 	case "/add_self_as_peer":
 		go hostappend.HandleAddSelf(ctx, validated)
 		validated = <-util.ValidatedChannel
+		fmt.Println(validated)
 
 	case "/get_information_by_url":
 		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
+		fmt.Println(validated)
 
 	case "/store_information":
 		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
+		fmt.Println(validated)
 
 	case "/get_blocks":
 		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
+		fmt.Println(validated)
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
@@ -42,9 +50,18 @@ func handler(ctx *fasthttp.RequestCtx) {
 
 }
 
+func wsHandler(conn *fastws.Conn) {
+	go gatewayconn.HandleNewWs(conn)
+}
+
 func main() {
 	util.InitClient()
-	util.InitChannels()
-	fmt.Println("Server listening on 'http://localhost:8080'")
-	fasthttp.ListenAndServe(":8080", handler)
+	go util.InitChannel()
+	time.Sleep(1000000)
+	go fasthttp.ListenAndServe(":8081", fastws.Upgrade(wsHandler))
+	go fasthttp.ListenAndServe(":8080", handler)
+	fmt.Println("Http server listening on 'ws://localhost:8080'")
+	fmt.Println("Socket server listening on 'http://localhost:8081'")
+	for {
+	}
 }

@@ -1,6 +1,6 @@
 use crate::blockchain::block::Block;
 use crate::blockchain::blockchain::SharedChain;
-use crate::blockchain::file_infor::FileInformation;
+use crate::blockchain::file_infor::BlockInformation;
 use serde::Deserialize;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -15,12 +15,6 @@ pub type SharedSocket = Arc<Mutex<WebSocket<MaybeTlsStream<TcpStream>>>>;
 enum MessageType {
     Chain(Vec<Block>),
     Block(Block),
-}
-
-#[derive(Deserialize)]
-struct FileMessage {
-    data: FileInformation,
-    timestamp: i128,
 }
 
 pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>) {
@@ -153,9 +147,9 @@ fn handle_http(
             if buffer.starts_with(b"POST /store_information HTTP/1.1") {
                 let full_req = String::from_utf8(buffer.to_vec()).unwrap();
                 let body = parse_body(full_req);
-                let file_infor_in_body: FileMessage = serde_json::from_str(&body).unwrap();
+                let file_infor_in_body: BlockInformation = serde_json::from_str(&body).unwrap();
                 let mut guard = blockchain.lock().unwrap();
-                guard.add_block(file_infor_in_body.data, file_infor_in_body.timestamp);
+                guard.add_block(file_infor_in_body);
 
                 let ws_iter = sockets.lock().unwrap();
                 let reffed = serde_json::to_string_pretty(&guard.0).unwrap();
@@ -190,8 +184,8 @@ fn handle_http(
                         // Write response here
                         let response = format!(
                             "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-                            data.len(),
-                            &data
+                            data.as_ref().unwrap().len(),
+                            data.as_ref().unwrap()
                         );
                         response_content.push_str(&response);
                         drop(response);
@@ -230,7 +224,7 @@ fn handle_http(
                 let mut hash: &str = "No matching hash";
 
                 for block in blockchain.0.iter().rev() {
-                    if block.timestamp == timestamp {
+                    if block.data.timestamp == timestamp {
                         hash = &block.hash
                     }
                 }

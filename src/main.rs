@@ -13,6 +13,7 @@ use crate::http_server::handle_socket_connection;
 
 mod blockchain;
 mod http_server;
+mod tests;
 
 const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
 const MIDDLEWARE_ADDR_GET_PEERS: &str = "http://localhost:8080/get_peers";
@@ -29,6 +30,10 @@ fn init_node(
     blockchain: crate::blockchain::blockchain::SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
+    let mut reffed_bc = blockchain.lock().unwrap();
+    *reffed_bc = Blockchain::new();
+    drop(reffed_bc);
+
     let resp_peers = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_PEERS)
         .unwrap()
         .text()
@@ -40,7 +45,7 @@ fn init_node(
         .unwrap();
 
     let mut reffed_bc = blockchain.lock().unwrap();
-
+    
     if &resp == "true" && &resp_peers != "[" {
         let blockchain_str = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_BLOCKS)
             .unwrap()
