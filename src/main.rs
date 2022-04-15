@@ -13,6 +13,7 @@ use crate::http_server::handle_socket_connection;
 
 mod blockchain;
 mod http_server;
+mod tests;
 
 const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
 const MIDDLEWARE_ADDR_GET_PEERS: &str = "http://localhost:8080/get_peers";

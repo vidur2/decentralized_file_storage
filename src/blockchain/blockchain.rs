@@ -3,11 +3,11 @@ use std::sync::{Arc, Mutex};
 use serde::{Deserialize, Serialize};
 
 use super::block::Block;
-use super::file_infor::FileInformation;
+use super::file_infor::BlockInformation;
 
 pub type SharedChain = Arc<Mutex<Blockchain>>;
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Clone)]
 pub struct Blockchain(pub Vec<Block>);
 
 impl Blockchain {
@@ -29,15 +29,10 @@ impl Blockchain {
     /// ## Returns
     /// A boolean indicating whether adding the block was succesful
     ///
-    pub fn add_block(&mut self, file: FileInformation, timestamp: i128) -> bool {
+    pub fn add_block(&mut self, file: BlockInformation) -> bool {
         let next_index = self.0.len();
         let prev_block = &self.0[next_index - 1];
-        let block = Block::new(
-            next_index as u128,
-            prev_block.hash.clone(),
-            file.clone(),
-            timestamp,
-        );
+        let block = Block::new(next_index as u128, prev_block.hash.clone(), file.clone());
         if self.check_block_validity(&block, &prev_block) && !self.check_if_exists(file) {
             self.0.push(block);
             return true;
@@ -72,7 +67,7 @@ impl Blockchain {
     /// ## Returns
     /// Boolean status on whether block is valid
     pub fn add_unverified_block(&mut self, new_block: Block) -> bool {
-        if self.check_block_validity(&new_block, &self.0[self.0.len()]) {
+        if self.check_block_validity(&new_block, &self.0.last().unwrap()) {
             self.0.push(new_block);
             return true;
         } else {
@@ -84,8 +79,9 @@ impl Blockchain {
     /// * Used to verify adding of files over websocket
     /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
+        let valid = new_block.data.verify_signature();
         if new_block.index - 1 != previous_block.index
-            || previous_block.hash != new_block.previous_hash
+            || previous_block.hash != new_block.previous_hash || !valid
         {
             return false;
         } else {
@@ -96,41 +92,37 @@ impl Blockchain {
     /// Checks whether an entered chain is valid
     /// * Used to verify blockchain recieved over websocket
     fn check_chain_validity(&self, new_chain: &Vec<Block>) -> bool {
-        // Return variable
-        let mut is_valid = true;
-
         // Iterates through chain
         for i in 1..new_chain.len() - 1 {
             let current_block = &new_chain[i];
             let previous_block = &new_chain[i - 1];
             let block_validity = self.check_block_validity(current_block, previous_block);
-            if !block_validity || previous_block.timestamp > current_block.timestamp {
-                is_valid = false;
+            if !block_validity || previous_block.data.timestamp > current_block.data.timestamp {
+                return false;
             }
         }
 
-        return is_valid;
+        return true;
     }
 
-    fn check_if_superchain(&self, new_chain: &Vec<Block>) -> bool {
-        if new_chain.len() > self.0.len() {
-            let blockchain = &self.0;
-            for (idx, block) in blockchain.iter().enumerate() {
-                if &new_chain[idx] != block {
-                    return false;
-                }
-            }
+    // fn check_if_superchain(&self, new_chain: &Vec<Block>) -> bool {
+    //     if new_chain.len() > self.0.len() {
+    //         let blockchain = &self.0;
+    //         for (idx, block) in blockchain.iter().enumerate() {
+    //             if &new_chain[idx] != block {
+    //                 return false;
+    //             }
+    //         }
 
-            return true;
-        } else {
-            return false;
-        }
-    }
+    //         return true;
+    //     } else {
+    //         return false;
+    //     }
+    // }
 
     /// Function used to replace a chain recieved over websocket
     pub fn replace_chain(&mut self, replacement_chain: Vec<Block>) -> bool {
         if self.check_chain_validity(&replacement_chain)
-            && self.check_if_superchain(&replacement_chain)
         {
             self.0 = replacement_chain;
             return true;
@@ -139,7 +131,7 @@ impl Blockchain {
         }
     }
 
-    fn check_if_exists(&self, file: FileInformation) -> bool {
+    fn check_if_exists(&self, file: BlockInformation) -> bool {
         let serialized_file = serde_json::to_string(&file);
 
         match serialized_file {
