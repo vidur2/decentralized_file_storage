@@ -33,7 +33,8 @@ impl Blockchain {
         let next_index = self.0.len();
         let prev_block = &self.0[next_index - 1];
         let block = Block::new(next_index as u128, prev_block.hash.clone(), file.clone());
-        if self.check_block_validity(&block, &prev_block) && !self.check_if_exists(file) {
+        let valid = self.check_block_validity(&block, &prev_block) && !self.check_if_exists(file);
+        if valid {
             self.0.push(block);
             return true;
         } else {
@@ -80,7 +81,7 @@ impl Blockchain {
     /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
         let valid =
-            new_block.data.verify_signature() && !self.check_block_validity_balance(new_block);
+            new_block.data.verify_signature() && self.check_block_validity_balance(new_block);
         if new_block.index - 1 != previous_block.index
             || previous_block.hash != new_block.previous_hash
             || !valid
