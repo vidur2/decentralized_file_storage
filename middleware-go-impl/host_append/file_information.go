@@ -48,7 +48,7 @@ func generateRandomFileInformation() FileInformation {
 		Version:           util.RandSeq(8),
 		FileType:          "Frontend",
 		TokensTransferred: 0,
-		ToAcctId:          "shitpost",
+		ToAcctId:          "network",
 		Signature:         signatureNums,
 		Timestamp:         timestamp,
 	}

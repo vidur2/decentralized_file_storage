@@ -1,3 +1,5 @@
+#![feature(let_chains)]
+
 use std::{
     sync::{Arc, Mutex},
     thread,
@@ -51,9 +53,10 @@ fn init_node(
             .unwrap()
             .text()
             .unwrap();
-
         let blockchain_vec: Vec<Block> = serde_json::from_str(&blockchain_str).unwrap();
-        *reffed_bc = Blockchain(blockchain_vec);
+        *reffed_bc = Blockchain{
+            chain: blockchain_vec,
+        };
 
         drop(blockchain_str);
         drop(reffed_bc);
@@ -89,8 +92,21 @@ fn main() {
     let http_server_handle = thread::spawn(move || {
         http_server::init_http(server_bc, server_sockets);
     });
+    let blockchain_node = Arc::clone(&blockchain);
+    init_node(blockchain_node, sockets);
 
-    init_node(blockchain, sockets);
+    let blockchain = Arc::clone(&blockchain);
+    thread::spawn(move || {
+        loop {
+            thread::sleep(std::time::Duration::from_secs(1));
+            let timestamp = datetime::Instant::now().seconds();
+            if timestamp % 86400 == 0 {
+                let mut guard = blockchain.lock().unwrap();
+                guard.withdraw();
+                drop(guard)
+            }
+        }
+    });
 
     http_server_handle
         .join()

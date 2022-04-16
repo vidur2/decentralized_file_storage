@@ -1,6 +1,6 @@
-use crate::blockchain::block::Block;
+use crate::blockchain::block::{Block, DataTypes};
 use crate::blockchain::blockchain::SharedChain;
-use crate::blockchain::file_infor::BlockInformation;
+use crate::blockchain::block_infor::BlockInformation;
 use serde::Deserialize;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -92,7 +92,7 @@ fn _handle_ws_connection(
                 let parsed: MessageType = serde_json::from_str(&block_infor).unwrap();
                 let mut guarded = blockchain.lock().unwrap();
                 let ws_iter = sockets.lock().unwrap();
-                let reffed = serde_json::to_string_pretty(&guarded.0).unwrap();
+                let reffed = serde_json::to_string_pretty(&guarded.chain).unwrap();
 
                 match parsed {
                     MessageType::Chain(new_bc) => {
@@ -152,7 +152,7 @@ fn handle_http(
                 guard.add_block(file_infor_in_body);
 
                 let ws_iter = sockets.lock().unwrap();
-                let reffed = serde_json::to_string_pretty(&guard.0).unwrap();
+                let reffed = serde_json::to_string_pretty(&guard.chain).unwrap();
 
                 for socket in ws_iter.iter() {
                     let mut socket_writable = socket.lock().unwrap();
@@ -180,15 +180,17 @@ fn handle_http(
 
                 match block {
                     Some(block_uw) => {
-                        let data = &block_uw.data.data;
-                        // Write response here
-                        let response = format!(
-                            "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-                            data.as_ref().unwrap().len(),
-                            data.as_ref().unwrap()
-                        );
-                        response_content.push_str(&response);
-                        drop(response);
+                        if let Some(DataTypes::Transaction(txn)) = &block_uw.data {
+                            let data = &txn.data;
+                            // Write response here
+                            let response = format!(
+                                "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                                data.as_ref().unwrap().len(),
+                                data.as_ref().unwrap()
+                            );
+                            response_content.push_str(&response);
+                            drop(response);
+                        }
                     }
                     None => {
                         let resp = "URL not stored in blockchain";
@@ -205,34 +207,11 @@ fn handle_http(
             // Return blocks from blockchain
             else if buffer.starts_with(b"GET /get_blocks HTTP/1.1") {
                 let blockchain = blockchain.lock().unwrap();
-                let blocks_as_str = serde_json::to_string(&blockchain.0).unwrap();
+                let blocks_as_str = serde_json::to_string(&blockchain.chain).unwrap();
                 let response = format!(
                     "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
                     blocks_as_str.len(),
                     blocks_as_str
-                );
-
-                response_content.push_str(&response);
-            }
-            // Returns hash given timestamp
-            else if buffer.starts_with(b"POST /get_hash HTTP/1.1") {
-                let timestamp: i128 = parse_body(String::from_utf8(buffer.to_vec()).unwrap())
-                    .trim()
-                    .parse()
-                    .unwrap();
-                let blockchain = blockchain.lock().unwrap();
-                let mut hash: &str = "No matching hash";
-
-                for block in blockchain.0.iter().rev() {
-                    if block.data.timestamp == timestamp {
-                        hash = &block.hash
-                    }
-                }
-
-                let response = format!(
-                    "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
-                    hash.len(),
-                    hash
                 );
 
                 response_content.push_str(&response);

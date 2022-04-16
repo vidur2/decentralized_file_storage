@@ -1,3 +1,4 @@
 pub mod block;
 pub mod blockchain;
-pub mod file_infor;
+pub mod block_infor;
+pub mod pool_infor;

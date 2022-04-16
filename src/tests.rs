@@ -1,6 +1,10 @@
 #[cfg(test)]
 mod tests {
-    use crate::blockchain::{block::Block, blockchain::Blockchain, file_infor::BlockInformation};
+    use crate::blockchain::{
+        block::{Block, DataTypes},
+        blockchain::Blockchain,
+        block_infor::BlockInformation,
+    };
     use datetime::Instant;
     use rand::{distributions::Alphanumeric, rngs::ThreadRng, thread_rng, Rng};
 
@@ -18,27 +22,27 @@ mod tests {
         );
 
         let block4 = Block::new(
-            blockchain.0.len() as u128,
-            blockchain.0.last().unwrap().hash.clone(),
-            BlockInformation {
+            blockchain.chain.len() as u128,
+            blockchain.chain.last().unwrap().hash.clone(),
+            Some(DataTypes::Transaction(BlockInformation {
                 data: Some(get_random(8)),
                 linked_uri,
                 creator: account.public.to_bytes().to_vec(),
-                version: String::from("0.0.0"),
-                file_type: crate::blockchain::file_infor::FileType::DataStore,
+                version: String::from("0.chain.chain"),
+                file_type: crate::blockchain::block_infor::FileType::DataStore,
                 signature: signature.to_bytes().to_vec(),
                 timestamp: timestamp as i128,
-                tokens_transferred: 0,
+                tokens_transferred: 0.,
                 to_acct_id: String::from("testing shit"),
-            },
+            })),
         );
 
         let mut replacement_chain = blockchain.clone();
         replacement_chain.add_unverified_block(block4);
 
-        println!("{}", replacement_chain.0.len());
+        println!("{}", replacement_chain.chain.len());
 
-        let success = blockchain.replace_chain(replacement_chain.0);
+        let success = blockchain.replace_chain(replacement_chain.chain);
 
         assert_eq!(success, true);
     }
@@ -55,19 +59,19 @@ mod tests {
                 &account.public,
             );
             let block = Block::new(
-                blockchain.0.len() as u128,
-                blockchain.0.last().unwrap().hash.clone(),
-                BlockInformation {
+                blockchain.chain.len() as u128,
+                blockchain.chain.last().unwrap().hash.clone(),
+                Some(DataTypes::Transaction(BlockInformation {
                     data: Some(get_random(8)),
                     linked_uri: linked_uri.clone(),
                     creator: account.public.to_bytes().to_vec(),
-                    version: String::from("0.0.0"),
-                    file_type: crate::blockchain::file_infor::FileType::DataStore,
+                    version: String::from("0.chain.chain"),
+                    file_type: crate::blockchain::block_infor::FileType::DataStore,
                     signature: signature.to_bytes().to_vec(),
                     timestamp: timestamp as i128,
-                    tokens_transferred: 0,
+                    tokens_transferred: 0.0,
                     to_acct_id: String::from("testing shit"),
-                },
+                })),
             );
             blockchain.add_unverified_block(block);
         }

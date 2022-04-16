@@ -65,8 +65,9 @@ func serializeValidated(validated []string) string {
 // Helper function to act as a request client
 func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, clientReqBody string) (fasthttp.Response, error) {
 	req := fasthttp.AcquireRequest()
+	fmt.Println(string(ctx.Path()))
 
-	if string(ctx.Path()) != "/get_blocks" {
+	if string(ctx.Path()) != "/get_blocks" && string(ctx.Path()) != "/get_pool_amt" {
 		req.Header.SetMethod(fasthttp.MethodPost)
 		req.AppendBodyString(clientReqBody)
 	} else {
