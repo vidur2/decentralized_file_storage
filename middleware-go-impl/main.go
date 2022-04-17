@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 	"vidur2/middleware/forwarder"
 	gatewayconn "vidur2/middleware/gateway_conn"
@@ -42,6 +43,10 @@ func handler(ctx *fasthttp.RequestCtx) {
 		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
 		fmt.Println(validated)
+
+	case "/get_amt_nodes":
+		validated = <-util.ValidatedChannel
+		ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)

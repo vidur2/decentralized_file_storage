@@ -9,7 +9,7 @@ use super::pool_infor::PoolInfor;
 pub type SharedChain = Arc<Mutex<Blockchain>>;
 
 #[derive(Deserialize, Serialize, Clone)]
-pub struct Blockchain{
+pub struct Blockchain {
     pub chain: Vec<Block>,
 }
 
@@ -20,10 +20,7 @@ impl Blockchain {
     pub fn new() -> Self {
         let mut blockchain = Vec::new();
         blockchain.push(Block::genesis());
-        return Self{
-            chain: blockchain,
-        }
-
+        return Self { chain: blockchain };
     }
 
     /// Adds block to blockchain
@@ -93,9 +90,10 @@ impl Blockchain {
     /// * Called in add_unverified_block method
     fn check_block_validity(&self, new_block: &Block, previous_block: &Block) -> bool {
         if let Some(DataTypes::Transaction(txn)) = &new_block.data {
-            
             // Add size check here
-            let valid = txn.verify_signature() && self.check_block_validity_balance(new_block) && self.check_to_file_id(txn);
+            let valid = txn.verify_signature()
+                && self.check_block_validity_balance(new_block)
+                && self.check_to_file_id(txn);
             if new_block.index - 1 != previous_block.index
                 || previous_block.hash != new_block.previous_hash
                 || !valid
@@ -112,12 +110,12 @@ impl Blockchain {
     fn check_to_file_id(&self, txn: &BlockInformation) -> bool {
         if let Some(_) = txn.data {
             if txn.to_acct_id == "network" {
-                return true
+                return true;
             } else {
-                return false
+                return false;
             }
         } else {
-            return false
+            return false;
         }
     }
 
@@ -157,7 +155,7 @@ impl Blockchain {
                 } else if &txn.creator == acct {
                     balance += txn.tokens_transferred
                 }
-            } else if let Some(DataTypes::Withdrawal(pool_block))  = &block.data {
+            } else if let Some(DataTypes::Withdrawal(pool_block)) = &block.data {
                 // Handle adding balances
                 balance += pool_block.get_tokens_in_account(acct)
             }
@@ -219,12 +217,16 @@ impl Blockchain {
     pub fn withdraw(&mut self) -> bool {
         let pool_amt = Self::calc_pool_amt(&self.chain);
         let data = DataTypes::Withdrawal(PoolInfor::new(pool_amt));
-        let block = Block::new(self.chain.len() as u128, self.chain.last().unwrap().hash.clone(), Some(data));
+        let block = Block::new(
+            self.chain.len() as u128,
+            self.chain.last().unwrap().hash.clone(),
+            Some(data),
+        );
         self.add_unverified_block(block)
     }
 
     fn calc_pool_amt(chain: &Vec<Block>) -> f32 {
-        let mut pool_sum = 0.; 
+        let mut pool_sum = 0.;
         for block in chain.iter().rev() {
             if let Some(data) = block.data.clone() {
                 match data {
@@ -232,14 +234,11 @@ impl Blockchain {
                         if txn.to_acct_id == "network" {
                             pool_sum += txn.tokens_transferred
                         }
-                    },
-                    DataTypes::Withdrawal(_) => {
-                        break
-                    },
+                    }
+                    DataTypes::Withdrawal(_) => break,
                 }
             }
         }
         return pool_sum;
     }
-
 }

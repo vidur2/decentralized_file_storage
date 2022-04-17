@@ -2,8 +2,8 @@
 mod tests {
     use crate::blockchain::{
         block::{Block, DataTypes},
-        blockchain::Blockchain,
         block_infor::BlockInformation,
+        blockchain::Blockchain,
     };
     use datetime::Instant;
     use rand::{distributions::Alphanumeric, rngs::ThreadRng, thread_rng, Rng};
@@ -28,19 +28,19 @@ mod tests {
                 data: Some(get_random(8)),
                 linked_uri,
                 creator: account.public.to_bytes().to_vec(),
-                version: String::from("0.chain.chain"),
+                version: String::from("0.0.1"),
                 file_type: crate::blockchain::block_infor::FileType::DataStore,
                 signature: signature.to_bytes().to_vec(),
                 timestamp: timestamp as i128,
                 tokens_transferred: 0.,
-                to_acct_id: String::from("testing shit"),
+                to_acct_id: String::from("network"),
             })),
         );
 
         let mut replacement_chain = blockchain.clone();
         replacement_chain.add_unverified_block(block4);
 
-        println!("{}", replacement_chain.chain.len());
+        println!("Length is {}", replacement_chain.chain.len());
 
         let success = blockchain.replace_chain(replacement_chain.chain);
 
@@ -65,14 +65,15 @@ mod tests {
                     data: Some(get_random(8)),
                     linked_uri: linked_uri.clone(),
                     creator: account.public.to_bytes().to_vec(),
-                    version: String::from("0.chain.chain"),
+                    version: String::from("0.0.0"),
                     file_type: crate::blockchain::block_infor::FileType::DataStore,
                     signature: signature.to_bytes().to_vec(),
                     timestamp: timestamp as i128,
                     tokens_transferred: 0.0,
-                    to_acct_id: String::from("testing shit"),
+                    to_acct_id: String::from("network"),
                 })),
             );
+
             blockchain.add_unverified_block(block);
         }
         return blockchain;

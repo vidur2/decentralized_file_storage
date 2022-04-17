@@ -1,6 +1,6 @@
 use crate::blockchain::block::{Block, DataTypes};
-use crate::blockchain::blockchain::SharedChain;
 use crate::blockchain::block_infor::BlockInformation;
+use crate::blockchain::blockchain::SharedChain;
 use serde::Deserialize;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};

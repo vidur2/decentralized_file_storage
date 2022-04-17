@@ -54,7 +54,7 @@ fn init_node(
             .text()
             .unwrap();
         let blockchain_vec: Vec<Block> = serde_json::from_str(&blockchain_str).unwrap();
-        *reffed_bc = Blockchain{
+        *reffed_bc = Blockchain {
             chain: blockchain_vec,
         };
 
@@ -96,15 +96,13 @@ fn main() {
     init_node(blockchain_node, sockets);
 
     let blockchain = Arc::clone(&blockchain);
-    thread::spawn(move || {
-        loop {
-            thread::sleep(std::time::Duration::from_secs(1));
-            let timestamp = datetime::Instant::now().seconds();
-            if timestamp % 86400 == 0 {
-                let mut guard = blockchain.lock().unwrap();
-                guard.withdraw();
-                drop(guard)
-            }
+    thread::spawn(move || loop {
+        thread::sleep(std::time::Duration::from_secs(1));
+        let timestamp = datetime::Instant::now().seconds();
+        if timestamp % 86400 == 0 {
+            let mut guard = blockchain.lock().unwrap();
+            guard.withdraw();
+            drop(guard)
         }
     });
 
