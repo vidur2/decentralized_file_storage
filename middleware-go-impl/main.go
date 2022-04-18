@@ -6,6 +6,7 @@ import (
 	"time"
 	"vidur2/middleware/forwarder"
 	gatewayconn "vidur2/middleware/gateway_conn"
+	"vidur2/middleware/get_node"
 	hostappend "vidur2/middleware/host_append"
 	"vidur2/middleware/util"
 
@@ -13,10 +14,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-var validated []string
+var validated []util.AddressInformation
 
 func handler(ctx *fasthttp.RequestCtx) {
-
+	fmt.Println(string(ctx.Path()))
 	switch string(ctx.Path()) {
 
 	case "/get_peers":
@@ -45,8 +46,12 @@ func handler(ctx *fasthttp.RequestCtx) {
 		fmt.Println(validated)
 
 	case "/get_amt_nodes":
-		validated = <-util.ValidatedChannel
-		ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
+		go func() {
+			ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
+		}()
+
+	case "/get_public_keys":
+		go get_node.HandleGetNode(ctx, validated)
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)

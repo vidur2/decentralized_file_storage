@@ -22,7 +22,7 @@ func HandleNewWs(conn *fastws.Conn) {
 	sockets = append(sockets, conn)
 	util.SocketsChannel <- sockets
 	var messageInfor MessageType
-	var validated []string
+	validated := make([]util.AddressInformation, 0)
 
 	for {
 		_, msg, err := conn.ReadMessage(nil)
@@ -32,13 +32,13 @@ func HandleNewWs(conn *fastws.Conn) {
 
 			if err == nil {
 				if messageInfor.Path == "/add_gateway" {
-					conn, err := fastws.Dial(messageInfor.IpInformation)
+					conn, err := fastws.Dial(messageInfor.IpInformation.HttpAddr)
 
 					if err == nil {
 						go HandleNewWs(conn)
 					}
 				} else if messageInfor.Path == "/add_node" {
-					valid := hostappend.TestHost(messageInfor.IpInformation)
+					valid := hostappend.TestHost(messageInfor.IpInformation.HttpAddr)
 
 					if valid {
 						validated = <-util.ValidatedChannel
@@ -54,8 +54,10 @@ func HandleNewWs(conn *fastws.Conn) {
 func broadcastAddGateway(sockets []*fastws.Conn, newConn fastws.Conn) {
 	for _, socket := range sockets {
 		msg, err := json.Marshal(MessageType{
-			Path:          "/add_gateway",
-			IpInformation: newConn.RemoteAddr().String(),
+			Path: "/add_gateway",
+			IpInformation: util.AddressInformation{
+				HttpAddr: newConn.RemoteAddr().String(),
+			},
 		})
 
 		if err == nil {

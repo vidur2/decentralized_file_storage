@@ -3,6 +3,13 @@ use serde::{Deserialize, Serialize};
 
 const GET_AMT_NODES: &str = "http://localhost:8080/get_amt_nodes";
 
+
+/// Struct representing data that sends tokens from the network to the node
+/// ## Fields
+/// * `timestamp`: Representing the time the block was added
+/// * `nodes_present`: The nodes that got the currency
+/// * `tokens_in_period`: Amount of tokesn thtat the network generated in period 
+
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct PoolInfor {
     pub timestamp: i64,
@@ -11,6 +18,10 @@ pub struct PoolInfor {
 }
 
 impl PoolInfor {
+
+    /// Constructor for PoolInfor
+    /// ## Arguments
+    /// * `tokens_in_period`: The amount of tokens generated in the period
     pub fn new(tokens_in_period: f32) -> Self {
         let timestamp = Instant::now().seconds();
         return Self {
@@ -20,7 +31,14 @@ impl PoolInfor {
         };
     }
 
-    pub fn get_tokens_in_account(&self, acct: &Vec<u8>) -> f32 {
+    /// Gets the amount of tokens a node is owed over a mining period
+    /// 
+    /// ## Arguments
+    /// * `acct`: The account being found
+    /// 
+    /// ## Returns
+    /// * `amount_owed`: f32, the amount the account is owed
+    pub fn get_tokens_owed(&self, acct: &Vec<u8>) -> f32 {
         let acct_amt = self.nodes_present.len();
         for acct_block in self.nodes_present.iter() {
             if acct_block == acct {
@@ -31,6 +49,7 @@ impl PoolInfor {
         return 0.;
     }
 
+    /// Verification for a block
     pub fn verify_pool_block(&self) -> bool {
         match Self::get_amount_of_nodes() {
             Some(node_amt) => {
@@ -44,6 +63,8 @@ impl PoolInfor {
         }
     }
 
+
+    /// Verifies the timestamp of the block
     fn verify_block_time(&self) -> bool {
         if self.timestamp > Instant::now().seconds() {
             return false;
@@ -52,6 +73,7 @@ impl PoolInfor {
         }
     }
 
+    /// Gets the amount of nodes in a period
     fn get_amount_of_nodes() -> Option<usize> {
         match reqwest::blocking::get(GET_AMT_NODES) {
             Ok(amt_nodes) => match amt_nodes.text() {

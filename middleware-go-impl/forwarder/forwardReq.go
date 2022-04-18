@@ -15,7 +15,7 @@ Forwards a request from the reverse proxy to a linked node
 ctx: The context of the recieved request from the reverse proxy
 validated: A list of active nodes
 */
-func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
+func ForwardOperation(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 
 	clientReqBody := string(ctx.Request.Body())
 
@@ -42,20 +42,20 @@ func ForwardOperation(ctx *fasthttp.RequestCtx, validated []string) {
 	util.ValidatedChannel <- validated
 }
 
-func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []string) {
+func HandleGetPeers(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 	util.ValidatedChannel <- validated
 	ctx.SetStatusCode(fasthttp.StatusOK)
 	ctx.Response.AppendBodyString(serializeValidated(validated))
 }
 
-func serializeValidated(validated []string) string {
+func serializeValidated(validated []util.AddressInformation) string {
 	retString := "["
 	for idx, server := range validated {
-		server = strings.Replace(server, ":8002", ":8003", 1)
+		server.HttpAddr = strings.Replace(server.HttpAddr, ":8002", ":8003", 1)
 		if idx != len(validated)-1 {
-			retString += server + ","
+			retString += server.HttpAddr + ","
 		} else {
-			retString += server + "]"
+			retString += server.HttpAddr + "]"
 		}
 	}
 
@@ -88,7 +88,7 @@ func _handleFileOperation(ctx *fasthttp.RequestCtx, ipAddr string, clientReqBody
 }
 
 // Gets an active server at random
-func getAvailableServer(validated []string) (string, string, int) {
+func getAvailableServer(validated []util.AddressInformation) (string, string, int) {
 	var chosenServer string
 	var randomIndex int
 	var err string
@@ -96,9 +96,9 @@ func getAvailableServer(validated []string) (string, string, int) {
 
 	if len(validated) > 1 {
 		randomIndex = rand.Intn(len(validated) - 1)
-		chosenServer = validated[randomIndex]
+		chosenServer = validated[randomIndex].HttpAddr
 	} else if len(validated) == 1 {
-		chosenServer = validated[0]
+		chosenServer = validated[0].HttpAddr
 	} else {
 		err = "No active servers right now"
 	}

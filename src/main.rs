@@ -21,6 +21,26 @@ const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
 const MIDDLEWARE_ADDR_GET_PEERS: &str = "http://localhost:8080/get_peers";
 const MIDDLEWARE_ADDR_ADD_SELF: &str = "http://localhost:8080/add_self_as_peer";
 
+fn get_node_information() -> [u8; 32] {
+    println!("Enter your public key(Press enter if you dont have one): ");
+    let mut line = String::new();
+    std::io::stdin().read_line(&mut line).unwrap();
+    let final_line: [u8; 32];
+
+    if line == "\n" {
+        let mut csprng = rand::prelude::ThreadRng::default();
+        let account = ed25519_dalek::Keypair::generate(&mut csprng);
+        let public_key = account.public.to_bytes();
+        println!("Your public key is {:?}", public_key);
+        println!("Your private key is {:?}", account.secret.to_bytes().to_vec());
+        final_line = public_key
+    } else {
+        line = line.replace("\n", "");
+        final_line = serde_json::from_str(&line).unwrap();
+    }
+    return final_line
+}
+
 /// Initialization code for the node
 /// * Connects to middleware
 /// * Connects to all other nodes
@@ -32,6 +52,7 @@ fn init_node(
     blockchain: crate::blockchain::blockchain::SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
+    get_node_information();
     let mut reffed_bc = blockchain.lock().unwrap();
     *reffed_bc = Blockchain::new();
     drop(reffed_bc);
