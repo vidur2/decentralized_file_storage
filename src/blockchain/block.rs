@@ -9,6 +9,8 @@ pub enum DataTypes {
     Withdrawal(PoolInfor),
 }
 
+type Data = Option<DataTypes>;
+
 /// Struct to represent a single file on the blockchain
 ///
 /// ## Fields
@@ -22,7 +24,7 @@ pub enum DataTypes {
 pub struct Block {
     pub index: u128,
     pub previous_hash: String,
-    pub data: Option<DataTypes>,
+    pub data: Data,
     pub hash: String,
 }
 
@@ -34,7 +36,7 @@ impl Block {
     /// * `index`- Index of the block
     /// * `previous hash`- Previous hash of the block (used for verification)
     /// * `data`- Actual data stored in the block as a FileInformation struct
-    pub fn new(index: u128, previous_hash: String, data: Option<DataTypes>) -> Self {
+    pub fn new(index: u128, previous_hash: String, data: Data) -> Self {
         if let Some(DataTypes::Transaction(txn)) = &data {
             Self {
                 index,
@@ -82,7 +84,7 @@ impl Block {
 pub fn hash_block(
     index: u128,
     previous_hash: String,
-    data: &Option<DataTypes>,
+    data: &Data,
     timestamp: i128,
 ) -> Option<String> {
     let mut hasher = Sha256::new();
