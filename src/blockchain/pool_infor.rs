@@ -2,6 +2,7 @@ use datetime::Instant;
 use serde::{Deserialize, Serialize};
 
 const GET_AMT_NODES: &str = "http://localhost:8080/get_amt_nodes";
+const GET_NODE_IDS: &str = "http://localhost:8080/get_public_keys";
 
 
 /// Struct representing data that sends tokens from the network to the node
@@ -85,6 +86,11 @@ impl PoolInfor {
     }
 
     fn get_nodes() -> Vec<Vec<u8>> {
-        todo!()
+        let resp = reqwest::blocking::get(GET_NODE_IDS)
+            .unwrap()
+            .text()
+            .unwrap();
+        println!("{}", resp);
+        return serde_json::from_str(&resp).unwrap();
     }
 }

@@ -52,20 +52,25 @@ fn init_node(
     blockchain: crate::blockchain::blockchain::SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
-    get_node_information();
     let mut reffed_bc = blockchain.lock().unwrap();
     *reffed_bc = Blockchain::new();
     drop(reffed_bc);
+    let node_infor = get_node_information();
+
+    let client = reqwest::blocking::Client::new();
 
     let resp_peers = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_PEERS)
         .unwrap()
         .text()
         .unwrap();
 
-    let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_ADD_SELF)
+    let resp = client.post(MIDDLEWARE_ADDR_ADD_SELF)
+        .body(serde_json::to_string(&node_infor).unwrap())
+        .send()
         .unwrap()
         .text()
         .unwrap();
+
 
     let mut reffed_bc = blockchain.lock().unwrap();
 
@@ -102,7 +107,7 @@ fn init_node(
         *reffed_bc = Blockchain::new();
     }
 
-    println!("Done!")
+    println!("Note them down and reenter it")
 }
 fn main() {
     let blockchain: SharedChain = Arc::new(Mutex::new(Blockchain::new()));

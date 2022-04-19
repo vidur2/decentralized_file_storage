@@ -46,12 +46,10 @@ func handler(ctx *fasthttp.RequestCtx) {
 		fmt.Println(validated)
 
 	case "/get_amt_nodes":
-		go func() {
-			ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
-		}()
+		ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
 
 	case "/get_public_keys":
-		go get_node.HandleGetNode(ctx, validated)
+		get_node.HandleGetNode(ctx, validated)
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)

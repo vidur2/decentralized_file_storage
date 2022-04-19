@@ -216,6 +216,7 @@ impl Blockchain {
 
     pub fn withdraw(&mut self) -> bool {
         let pool_amt = Self::calc_pool_amt(&self.chain);
+        println!("Yo");
         let data = DataTypes::Withdrawal(PoolInfor::new(pool_amt));
         let block = Block::new(
             self.chain.len() as u128,
