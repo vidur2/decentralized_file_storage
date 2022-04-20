@@ -33,7 +33,7 @@ mod tests {
                 signature: signature.to_bytes().to_vec(),
                 timestamp: timestamp as i128,
                 tokens_transferred: 0.,
-                to_acct_id: String::from("network"),
+                to_acct_id: b"network".to_vec(),
             })),
         );
 
@@ -70,7 +70,7 @@ mod tests {
                     signature: signature.to_bytes().to_vec(),
                     timestamp: timestamp as i128,
                     tokens_transferred: 0.0,
-                    to_acct_id: String::from("network"),
+                    to_acct_id: b"network".to_vec(),
                 })),
             );
 

@@ -4,12 +4,11 @@ use serde::{Deserialize, Serialize};
 const GET_AMT_NODES: &str = "http://localhost:8080/get_amt_nodes";
 const GET_NODE_IDS: &str = "http://localhost:8080/get_public_keys";
 
-
 /// Struct representing data that sends tokens from the network to the node
 /// ## Fields
 /// * `timestamp`: Representing the time the block was added
 /// * `nodes_present`: The nodes that got the currency
-/// * `tokens_in_period`: Amount of tokesn thtat the network generated in period 
+/// * `tokens_in_period`: Amount of tokesn thtat the network generated in period
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct PoolInfor {
@@ -19,7 +18,6 @@ pub struct PoolInfor {
 }
 
 impl PoolInfor {
-
     /// Constructor for PoolInfor
     /// ## Arguments
     /// * `tokens_in_period`: The amount of tokens generated in the period
@@ -33,10 +31,10 @@ impl PoolInfor {
     }
 
     /// Gets the amount of tokens a node is owed over a mining period
-    /// 
+    ///
     /// ## Arguments
     /// * `acct`: The account being found
-    /// 
+    ///
     /// ## Returns
     /// * `amount_owed`: f32, the amount the account is owed
     pub fn get_tokens_owed(&self, acct: &Vec<u8>) -> f32 {
@@ -63,7 +61,6 @@ impl PoolInfor {
             None => return false,
         }
     }
-
 
     /// Verifies the timestamp of the block
     fn verify_block_time(&self) -> bool {

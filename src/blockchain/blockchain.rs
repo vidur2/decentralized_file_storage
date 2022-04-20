@@ -109,7 +109,7 @@ impl Blockchain {
 
     fn check_to_file_id(&self, txn: &BlockInformation) -> bool {
         if let Some(_) = txn.data {
-            if txn.to_acct_id == "network" {
+            if txn.to_acct_id == *b"network".to_vec() {
                 return true;
             } else {
                 return false;
@@ -129,7 +129,7 @@ impl Blockchain {
             let block_validity = self.check_block_validity(current_block, previous_block);
 
             if let Some(DataTypes::Transaction(txn)) = &current_block.data {
-                if !block_validity || txn.timestamp > txn.timestamp {
+                if !block_validity || txn.timestamp > datetime::Instant::now().seconds() as i128 {
                     return false;
                 }
             } else if i > self.chain.len() - 1 && current_block != &self.chain[i] {
@@ -216,7 +216,6 @@ impl Blockchain {
 
     pub fn withdraw(&mut self) -> bool {
         let pool_amt = Self::calc_pool_amt(&self.chain);
-        println!("Yo");
         let data = DataTypes::Withdrawal(PoolInfor::new(pool_amt));
         let block = Block::new(
             self.chain.len() as u128,
@@ -232,7 +231,7 @@ impl Blockchain {
             if let Some(data) = block.data.clone() {
                 match data {
                     DataTypes::Transaction(txn) => {
-                        if txn.to_acct_id == "network" {
+                        if txn.to_acct_id == b"network".to_vec() {
                             pool_sum += txn.tokens_transferred
                         }
                     }

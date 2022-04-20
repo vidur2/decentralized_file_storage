@@ -32,13 +32,16 @@ fn get_node_information() -> [u8; 32] {
         let account = ed25519_dalek::Keypair::generate(&mut csprng);
         let public_key = account.public.to_bytes();
         println!("Your public key is {:?}", public_key);
-        println!("Your private key is {:?}", account.secret.to_bytes().to_vec());
+        println!(
+            "Your private key is {:?}",
+            account.secret.to_bytes().to_vec()
+        );
         final_line = public_key
     } else {
         line = line.replace("\n", "");
         final_line = serde_json::from_str(&line).unwrap();
     }
-    return final_line
+    return final_line;
 }
 
 /// Initialization code for the node
@@ -64,13 +67,13 @@ fn init_node(
         .text()
         .unwrap();
 
-    let resp = client.post(MIDDLEWARE_ADDR_ADD_SELF)
+    let resp = client
+        .post(MIDDLEWARE_ADDR_ADD_SELF)
         .body(serde_json::to_string(&node_infor).unwrap())
         .send()
         .unwrap()
         .text()
         .unwrap();
-
 
     let mut reffed_bc = blockchain.lock().unwrap();
 
