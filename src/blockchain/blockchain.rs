@@ -94,6 +94,7 @@ impl Blockchain {
             let valid = txn.verify_signature()
                 && self.check_block_validity_balance(new_block)
                 && self.check_to_file_id(txn);
+
             if new_block.index - 1 != previous_block.index
                 || previous_block.hash != new_block.previous_hash
                 || !valid
@@ -115,7 +116,7 @@ impl Blockchain {
                 return false;
             }
         } else {
-            return false;
+            return true;
         }
     }
 
