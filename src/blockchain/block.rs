@@ -44,13 +44,6 @@ impl Block {
                 data: data.clone(),
                 hash: hash_block(index, previous_hash, &data, txn.timestamp).unwrap(),
             }
-        } else if let Some(DataTypes::Transaction(txn)) = &data {
-            Self {
-                index,
-                previous_hash: previous_hash.clone(),
-                data: data.clone(),
-                hash: hash_block(index, previous_hash, &data, txn.timestamp).unwrap(),
-            }
         } else {
             Self {
                 index,
