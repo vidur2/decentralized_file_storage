@@ -93,7 +93,8 @@ impl Blockchain {
             // Add size check here
             let valid = txn.verify_signature()
                 && self.check_block_validity_balance(new_block)
-                && self.check_to_file_id(txn);
+                && self.check_to_file_id(txn)
+                && txn.creator != *b"network";
 
             if new_block.index - 1 != previous_block.index
                 || previous_block.hash != new_block.previous_hash
