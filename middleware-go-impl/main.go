@@ -45,6 +45,10 @@ func handler(ctx *fasthttp.RequestCtx) {
 		validated = <-util.ValidatedChannel
 		fmt.Println(validated)
 
+	case "/get_balance":
+		go forwarder.ForwardOperation(ctx, validated)
+		validated = <-util.ValidatedChannel
+
 	case "/get_amt_nodes":
 		ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
 

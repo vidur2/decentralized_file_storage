@@ -16,6 +16,7 @@ use crate::http_server::handle_socket_connection;
 mod blockchain;
 mod http_server;
 mod tests;
+mod util;
 
 const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
 const MIDDLEWARE_ADDR_GET_PEERS: &str = "http://localhost:8080/get_peers";
@@ -128,7 +129,7 @@ fn main() {
     thread::spawn(move || loop {
         thread::sleep(std::time::Duration::from_secs(1));
         let timestamp = datetime::Instant::now().seconds();
-        if timestamp % 86400 == 0 {
+        if timestamp % crate::util::date_calc::CollectionPeriod::Minutes.get_value() == 0 {
             let mut guard = blockchain.lock().unwrap();
             guard.withdraw();
             drop(guard)

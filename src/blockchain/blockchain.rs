@@ -157,8 +157,7 @@ impl Blockchain {
                     balance += txn.tokens_transferred
                 }
             } else if let Some(DataTypes::Withdrawal(pool_block)) = &block.data {
-                // Handle adding balances
-                balance += pool_block.get_tokens_owed(acct)
+                balance += pool_block.get_tokens_owed(acct);
             }
         }
 

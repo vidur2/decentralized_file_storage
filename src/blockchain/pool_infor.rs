@@ -26,7 +26,7 @@ impl PoolInfor {
         return Self {
             timestamp,
             nodes_present: Self::get_nodes(),
-            tokens_in_period,
+            tokens_in_period: tokens_in_period + 5.0,
         };
     }
 
@@ -87,7 +87,6 @@ impl PoolInfor {
             .unwrap()
             .text()
             .unwrap();
-        println!("{}", resp);
         return serde_json::from_str(&resp).unwrap();
     }
 }
