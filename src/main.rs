@@ -21,6 +21,24 @@ const MIDDLEWARE_ADDR_GET_BLOCKS: &str = "http://localhost:8080/get_blocks";
 const MIDDLEWARE_ADDR_GET_PEERS: &str = "http://localhost:8080/get_peers";
 const MIDDLEWARE_ADDR_ADD_SELF: &str = "http://localhost:8080/add_self_as_peer";
 
+fn get_node_pk() -> String {
+    println!("Enter your public key here (if you dont have one, just press enter): ");
+    let mut line = String::new();
+    std::io::stdin().read_line(&mut line).expect("Could not read");
+    if line != "\n" {
+        line = line.replace("\n", "");
+    } else {
+        let mut csprng = rand::prelude::ThreadRng::default();
+        let account = ed25519_dalek::Keypair::generate(&mut csprng);
+
+        println!("Your public key is {:?}", account.public.to_bytes());
+        println!("Your private key is {:?}", account.secret.to_bytes());
+        line = serde_json::to_string(&account.public.to_bytes()).unwrap()
+    }
+    
+    return line
+}
+
 /// Initialization code for the node
 /// * Connects to middleware
 /// * Connects to all other nodes
@@ -32,16 +50,16 @@ fn init_node(
     blockchain: crate::blockchain::blockchain::SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
 ) {
-    let mut reffed_bc = blockchain.lock().unwrap();
-    *reffed_bc = Blockchain::new();
-    drop(reffed_bc);
-
+    let public_key = get_node_pk();
+    let client = reqwest::blocking::Client::new();
     let resp_peers = reqwest::blocking::get(MIDDLEWARE_ADDR_GET_PEERS)
         .unwrap()
         .text()
         .unwrap();
 
-    let resp = reqwest::blocking::get(MIDDLEWARE_ADDR_ADD_SELF)
+    let resp = client.post(MIDDLEWARE_ADDR_ADD_SELF)
+        .body(public_key)
+        .send()
         .unwrap()
         .text()
         .unwrap();
@@ -99,8 +117,9 @@ fn main() {
     thread::spawn(move || loop {
         thread::sleep(std::time::Duration::from_secs(1));
         let timestamp = datetime::Instant::now().seconds();
-        if timestamp % 86400 == 0 {
+        if timestamp % 60 == 0 {
             let mut guard = blockchain.lock().unwrap();
+            println!("Thing");
             guard.withdraw();
             drop(guard)
         }

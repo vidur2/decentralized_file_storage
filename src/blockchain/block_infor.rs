@@ -35,7 +35,7 @@ pub struct BlockInformation {
     pub tokens_transferred: f32,
 
     /// To acct id:
-    pub to_acct_id: String,
+    pub to_acct_id: Vec<u8>,
 }
 
 impl BlockInformation {

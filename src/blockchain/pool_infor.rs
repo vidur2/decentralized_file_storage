@@ -2,6 +2,7 @@ use datetime::Instant;
 use serde::{Deserialize, Serialize};
 
 const GET_AMT_NODES: &str = "http://localhost:8080/get_amt_nodes";
+const GET_NODES: &str = "http://localhost:8080/get_public_keys";
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Debug)]
 pub struct PoolInfor {
@@ -63,6 +64,13 @@ impl PoolInfor {
     }
 
     fn get_nodes() -> Vec<Vec<u8>> {
-        todo!()
+        let pk_as_str = reqwest::blocking::get(GET_NODES)
+            .unwrap()
+            .text()
+            .unwrap();
+        println!("{}", pk_as_str);
+        let parsed: Vec<Vec<u8>> = serde_json::from_str(&pk_as_str).unwrap();
+
+        return parsed
     }
 }

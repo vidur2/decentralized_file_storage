@@ -28,13 +28,16 @@ type MessageType struct {
 // Params:
 //  * ctx: fasthttp context object
 //  * validated: slice containing all active nodes
-func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []string) {
+func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 	ipInformation := realip.FromRequest(ctx) + ":8002"
 
 	fmt.Println(ipInformation)
 	valid := TestHost("http://" + ipInformation)
 	if valid {
-		validated = append(validated, ipInformation)
+		validated = append(validated, util.AddressInformation{
+			HttpAddr:  ipInformation,
+			PublicKey: string(ctx.Request.Body()),
+		})
 		handleAdd(ipInformation)
 	}
 	fmt.Println(strconv.FormatBool(valid))

@@ -109,7 +109,7 @@ impl Blockchain {
 
     fn check_to_file_id(&self, txn: &BlockInformation) -> bool {
         if let Some(_) = txn.data {
-            if txn.to_acct_id == "network" {
+            if txn.to_acct_id == b"network" {
                 return true;
             } else {
                 return false;
@@ -216,7 +216,7 @@ impl Blockchain {
 
     pub fn withdraw(&mut self) -> bool {
         let pool_amt = Self::calc_pool_amt(&self.chain);
-        let data = DataTypes::Withdrawal(PoolInfor::new(pool_amt));
+        let data = DataTypes::Withdrawal(PoolInfor::new(pool_amt + 5.));
         let block = Block::new(
             self.chain.len() as u128,
             self.chain.last().unwrap().hash.clone(),
@@ -231,7 +231,7 @@ impl Blockchain {
             if let Some(data) = block.data.clone() {
                 match data {
                     DataTypes::Transaction(txn) => {
-                        if txn.to_acct_id == "network" {
+                        if txn.to_acct_id == b"network" {
                             pool_sum += txn.tokens_transferred
                         }
                     }

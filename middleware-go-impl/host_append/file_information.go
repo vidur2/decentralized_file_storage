@@ -18,7 +18,7 @@ type FileInformation struct {
 	Version           string   `json:"version"`
 	FileType          string   `json:"file_type"`
 	TokensTransferred int64    `json:"tokens_transferred"`
-	ToAcctId          string   `json:"to_acct_id"`
+	ToAcctId          []uint16 `json:"to_acct_id"`
 	Signature         []uint16 `json:"signature"`
 	Timestamp         int64    `json:"timestamp"`
 }
@@ -41,6 +41,11 @@ func generateRandomFileInformation() FileInformation {
 	for _, char := range signature {
 		signatureNums = append(signatureNums, uint16(char))
 	}
+
+	networkNums := make([]uint16, 0)
+	for _, char := range "network" {
+		networkNums = append(networkNums, uint16(char))
+	}
 	return FileInformation{
 		Data:              util.RandSeq(8),
 		LinkedUri:         linked_uri,
@@ -48,7 +53,7 @@ func generateRandomFileInformation() FileInformation {
 		Version:           util.RandSeq(8),
 		FileType:          "Frontend",
 		TokensTransferred: 0,
-		ToAcctId:          "network",
+		ToAcctId:          networkNums,
 		Signature:         signatureNums,
 		Timestamp:         timestamp,
 	}

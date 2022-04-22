@@ -215,10 +215,8 @@ fn handle_http(
                 );
 
                 response_content.push_str(&response);
-            } else if buffer.starts_with(b"POST /get_balance HTTP /1.1") {
-                let account = parse_body(String::from_utf8(buffer.to_vec()).unwrap())
-                    .as_bytes()
-                    .to_vec();
+            } else if buffer.starts_with(b"POST /get_balance HTTP/1.1") {
+                let account: Vec<u8> = serde_json::from_str(&parse_body(String::from_utf8(buffer.to_vec()).unwrap())).unwrap();
                 let blockchain = blockchain.lock().unwrap();
                 let balance = blockchain.get_amt_in_wallet(&account).to_string();
                 let response = format!(

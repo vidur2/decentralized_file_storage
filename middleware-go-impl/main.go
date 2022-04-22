@@ -13,7 +13,7 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
-var validated []string
+var validated []util.AddressInformation
 
 func handler(ctx *fasthttp.RequestCtx) {
 
@@ -44,9 +44,16 @@ func handler(ctx *fasthttp.RequestCtx) {
 		validated = <-util.ValidatedChannel
 		fmt.Println(validated)
 
-	case "/get_amt_nodes":
+	case "/get_balance":
+		go forwarder.ForwardOperation(ctx, validated)
 		validated = <-util.ValidatedChannel
+		fmt.Println(validated)
+
+	case "/get_amt_nodes":
 		ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
+
+	case "/get_public_keys":
+		forwarder.HandleGetPublicKeys(ctx, validated)
 
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
