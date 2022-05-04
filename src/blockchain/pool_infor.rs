@@ -53,7 +53,7 @@ impl PoolInfor {
         }
     }
 
-    fn get_amount_of_nodes() -> Option<usize> {
+    pub fn get_amount_of_nodes() -> Option<usize> {
         match reqwest::blocking::get(GET_AMT_NODES) {
             Ok(amt_nodes) => match amt_nodes.text() {
                 Ok(text) => return Some(text.trim().parse().unwrap()),
@@ -64,13 +64,10 @@ impl PoolInfor {
     }
 
     fn get_nodes() -> Vec<Vec<u8>> {
-        let pk_as_str = reqwest::blocking::get(GET_NODES)
-            .unwrap()
-            .text()
-            .unwrap();
+        let pk_as_str = reqwest::blocking::get(GET_NODES).unwrap().text().unwrap();
         println!("{}", pk_as_str);
         let parsed: Vec<Vec<u8>> = serde_json::from_str(&pk_as_str).unwrap();
 
-        return parsed
+        return parsed;
     }
 }
