@@ -69,6 +69,8 @@ pub fn init_node(
         }
     } else if &resp == "true" {
         *reffed_bc = Blockchain::new();
+    } else {
+        panic!("Node already connected");
     }
 
     println!("Done!")

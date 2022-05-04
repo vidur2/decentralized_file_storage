@@ -11,7 +11,7 @@ use super::node_assist::init_node;
 #[repr(u8)]
 enum CurrentPage {
     Login,
-    SignUp
+    SignUp,
 }
 
 pub(crate) struct GuiImpl {
@@ -20,7 +20,7 @@ pub(crate) struct GuiImpl {
     blockchain: SharedChain,
     sockets: Arc<Mutex<Vec<SharedSocket>>>,
     state: Arc<Mutex<SharedBool>>,
-    page: CurrentPage
+    page: CurrentPage,
 }
 
 impl GuiImpl {
@@ -35,7 +35,7 @@ impl GuiImpl {
             blockchain,
             sockets,
             state,
-            page: CurrentPage::Login
+            page: CurrentPage::Login,
         }
     }
 }
@@ -65,8 +65,10 @@ impl eframe::App for GuiImpl {
                         let mut guard = self.state.lock().unwrap();
                         self.page = CurrentPage::SignUp;
                         *guard = SharedBool::new(true);
-                        self.private_key = serde_json::to_string(&account.secret.to_bytes()).unwrap();
-                        self.public_key = serde_json::to_string(&account.public.to_bytes()).unwrap();
+                        self.private_key =
+                            serde_json::to_string(&account.secret.to_bytes()).unwrap();
+                        self.public_key =
+                            serde_json::to_string(&account.public.to_bytes()).unwrap();
                         init_node(
                             Arc::clone(&self.blockchain),
                             Arc::clone(&self.sockets),

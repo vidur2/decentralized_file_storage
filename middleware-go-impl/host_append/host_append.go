@@ -30,20 +30,24 @@ type MessageType struct {
 //  * validated: slice containing all active nodes
 func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 	ipInformation := realip.FromRequest(ctx) + ":8002"
-
+	check1 := !checkIfInList(validated, ipInformation)
 	fmt.Println(ipInformation)
-	valid := TestHost("http://" + ipInformation)
-	if valid {
+	check2 := TestHost("http://" + ipInformation)
+	fmt.Println(check1 && check2)
+	if check1 && check2 {
 		validated = append(validated, util.AddressInformation{
 			HttpAddr:  ipInformation,
 			PublicKey: string(ctx.Request.Body()),
 		})
 		handleAdd(ipInformation)
+	} else {
+		fmt.Println("SHITTTT!")
 	}
-	fmt.Println(strconv.FormatBool(valid))
+	fmt.Println(strconv.FormatBool(check2 && check1))
 	ctx.SetStatusCode(fasthttp.StatusOK)
-	ctx.Response.AppendBodyString(strconv.FormatBool(valid))
+	ctx.Response.AppendBodyString(strconv.FormatBool(check2 && check1))
 	util.ValidatedChannel <- validated
+
 }
 
 // Broadcasts the adding of a node over ip
@@ -63,4 +67,13 @@ func handleAdd(ipInformation string) {
 			}
 		}
 	}
+}
+
+func checkIfInList(validated []util.AddressInformation, url string) bool {
+	for _, server := range validated {
+		if server.HttpAddr == url {
+			return true
+		}
+	}
+	return false
 }
