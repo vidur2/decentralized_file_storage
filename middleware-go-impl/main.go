@@ -7,6 +7,7 @@ import (
 	"vidur2/middleware/forwarder"
 	gatewayconn "vidur2/middleware/gateway_conn"
 	hostappend "vidur2/middleware/host_append"
+	removehost "vidur2/middleware/remove_host"
 	"vidur2/middleware/util"
 
 	"github.com/dgrr/fastws"
@@ -55,6 +56,9 @@ func handler(ctx *fasthttp.RequestCtx) {
 	case "/get_public_keys":
 		forwarder.HandleGetPublicKeys(ctx, validated)
 
+	case "/remove_ip_addr":
+		validated = removehost.HandleRemoveHost(ctx, validated)
+		util.ValidatedChannel <- validated
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
 		ctx.Response.AppendBodyString("Invalid Path")

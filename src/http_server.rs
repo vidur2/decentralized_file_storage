@@ -38,14 +38,6 @@ pub fn init_http(blockchain: SharedChain, sockets: Arc<Mutex<Vec<SharedSocket>>>
                 socket_guard.append(&mut vec![Arc::clone(&ws)]);
                 drop(socket_guard);
 
-                // Handle user off
-                let ws_ctrlc = Arc::clone(&ws);
-                ctrlc::set_handler(move || {
-                    let mut ws_guard = ws_ctrlc.lock().unwrap();
-                    ws_guard.close(None).expect("Could not close");
-                })
-                .expect("Could not add listener");
-
                 handle_socket_connection(ws, blockchain, sockets)
             });
         }
