@@ -49,7 +49,7 @@ impl GuiImpl {
 impl eframe::App for GuiImpl {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         egui::CentralPanel::default().show(&ctx, |ui| {
-            if let CurrentPage::Login = self.page {
+            if let CurrentPage::Login = self.page && !self.state.lock().unwrap().get_value() {
                 ui.horizontal(|horiz_ui| {
                     horiz_ui.label("Enter Public Key Here: ");
                     horiz_ui.text_edit_singleline(&mut self.public_key)

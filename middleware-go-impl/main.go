@@ -54,7 +54,7 @@ func handler(ctx *fasthttp.RequestCtx) {
 		ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
 
 	case "/get_public_keys":
-		go forwarder.HandleGetPublicKeys(ctx, validated)
+		forwarder.HandleGetPublicKeys(ctx, validated)
 
 	case "/remove_ip_addr":
 		removehost.HandleRemoveHost(ctx, validated)
