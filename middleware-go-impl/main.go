@@ -54,11 +54,10 @@ func handler(ctx *fasthttp.RequestCtx) {
 		ctx.Response.AppendBodyString(strconv.FormatInt(int64(len(validated)), 10))
 
 	case "/get_public_keys":
-		forwarder.HandleGetPublicKeys(ctx, validated)
+		go forwarder.HandleGetPublicKeys(ctx, validated)
 
 	case "/remove_ip_addr":
-		validated = removehost.HandleRemoveHost(ctx, validated)
-		util.ValidatedChannel <- validated
+		removehost.HandleRemoveHost(ctx, validated)
 	default:
 		ctx.Response.SetStatusCode(fasthttp.StatusNotFound)
 		ctx.Response.AppendBodyString("Invalid Path")

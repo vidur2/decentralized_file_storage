@@ -1,4 +1,6 @@
 use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
 use datetime::Instant;
 
@@ -129,14 +131,18 @@ impl Drop for GuiImpl {
             &final_public.unwrap()
         );
 
-        let body = RemoveHostOptions::new(timestamp.to_string(), serde_json::to_string(&signature.to_bytes().to_vec()).unwrap(), self.public_key.clone());
+        let body = serde_json::to_string(&RemoveHostOptions::new(timestamp.to_string(), serde_json::to_string(&signature.to_bytes().to_vec()).unwrap(), self.public_key.clone())).unwrap();
+        println!("{}", body);
         let client = reqwest::blocking::Client::new();
-
-        client.post(MIDDLEWARE_ADDR_REMOVE_SELF)
-            .body(serde_json::to_string(&body).unwrap())
-            .send().expect("Could not delete client");
-        
-        eprintln!("Closed Successfully");
+        thread::spawn(move || {
+            client.post(MIDDLEWARE_ADDR_REMOVE_SELF)
+                .body(body)
+                .send().expect("Could not delete client")
+                .text()
+                .unwrap();
+        });
+        thread::sleep(Duration::from_secs(1));
+        eprintln!("Success");
 
     }
 }

@@ -17,8 +17,9 @@ type RequestFormat struct {
 	PublicKey string `json:"public_key"`
 }
 
-func HandleRemoveHost(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) []util.AddressInformation {
+func HandleRemoveHost(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 	var parsedBody RequestFormat
+	fmt.Println(string(ctx.Request.Body()))
 	err := json.Unmarshal(ctx.Request.Body(), &parsedBody)
 
 	if err == nil {
@@ -30,12 +31,11 @@ func HandleRemoveHost(ctx *fasthttp.RequestCtx, validated []util.AddressInformat
 		}
 		ctx.Response.AppendBodyString("good")
 	} else {
-		fmt.Println(err)
 		ctx.Response.SetStatusCode(fasthttp.StatusBadRequest)
 		ctx.Response.AppendBodyString("bad")
 	}
 
-	return validated
+	util.ValidatedChannel <- validated
 }
 
 func stringToArray(str string) []byte {

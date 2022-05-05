@@ -1,4 +1,3 @@
-use datetime::Instant;
 use serde::Serialize;
 
 #[derive(Serialize)]

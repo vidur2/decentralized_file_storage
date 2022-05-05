@@ -1,6 +1,8 @@
 package util
 
-import "github.com/dgrr/fastws"
+import (
+	"github.com/dgrr/fastws"
+)
 
 var ValidatedChannel chan ([]AddressInformation)
 var SocketsChannel chan ([]*fastws.Conn)

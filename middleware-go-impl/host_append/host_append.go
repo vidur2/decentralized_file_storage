@@ -33,7 +33,6 @@ func HandleAddSelf(ctx *fasthttp.RequestCtx, validated []util.AddressInformation
 	check1 := !checkIfInList(validated, ipInformation)
 	fmt.Println(ipInformation)
 	check2 := TestHost("http://" + ipInformation)
-	fmt.Println(check1 && check2)
 	if check1 && check2 {
 		validated = append(validated, util.AddressInformation{
 			HttpAddr:  ipInformation,
