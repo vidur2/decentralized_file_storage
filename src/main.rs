@@ -31,7 +31,7 @@ fn main() {
     thread::spawn(move || loop {
         thread::sleep(std::time::Duration::from_secs(1));
         let timestamp = datetime::Instant::now().seconds();
-        if timestamp % 10 == 0 && initialized_comp.lock().unwrap().get_value() != false {
+        if timestamp % 86400 == 0 && initialized_comp.lock().unwrap().get_value() != false {
             let mut guard = blockchain.lock().unwrap();
             guard.withdraw();
             drop(guard)
