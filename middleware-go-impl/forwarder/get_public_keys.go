@@ -1,6 +1,7 @@
 package forwarder
 
 import (
+	"fmt"
 	"vidur2/middleware/util"
 
 	"github.com/valyala/fasthttp"
@@ -8,6 +9,7 @@ import (
 
 func HandleGetPublicKeys(ctx *fasthttp.RequestCtx, validated []util.AddressInformation) {
 	retValue := serializePublicKeys(validated)
+	fmt.Println(retValue)
 	ctx.Response.AppendBodyString(retValue)
 }
 

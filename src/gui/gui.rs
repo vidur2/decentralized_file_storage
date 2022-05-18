@@ -78,6 +78,8 @@ impl eframe::App for GuiImpl {
                         *guard = SharedBool::new(true);
                         self.private_key =
                             serde_json::to_string(&account.secret.to_bytes()).unwrap();
+
+                        println!("{}", self.private_key);
                         self.public_key =
                             serde_json::to_string(&account.public.to_bytes()).unwrap();
                         init_node(
