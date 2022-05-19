@@ -2,7 +2,6 @@ package gatewayconn
 
 import (
 	"encoding/json"
-	hostappend "vidur2/middleware/host_append"
 	"vidur2/middleware/util"
 
 	"github.com/dgrr/fastws"
@@ -38,7 +37,7 @@ func HandleNewWs(conn *fastws.Conn) {
 						go HandleNewWs(conn)
 					}
 				} else if messageInfor.Path == "/add_node" {
-					valid := hostappend.TestHost(messageInfor.IpInformation.HttpAddr)
+					valid := true
 
 					if valid {
 						validated = <-util.ValidatedChannel
